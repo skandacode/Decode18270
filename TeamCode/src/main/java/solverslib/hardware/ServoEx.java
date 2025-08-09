@@ -10,15 +10,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 /**
  * An extended Servo wrapper class which implements utility features such as
  * caching to reduce loop times and custom angle ranges.
- *
- * @author Saket
  */
 public class ServoEx implements HardwareDevice {
     private final Servo servo;
     private final String id;
     private double min = 0.0;
     private double max = 1.0;
-    private double cachingTolerance = 0.0001;
+    private double cachingTolerance = 0.001;
+
+    private double curr_raw_pos = -1;
+    private double prev_raw_pos = -1;
+
 
     /**
      * The main constructor for the ServoEx object.
@@ -28,29 +30,11 @@ public class ServoEx implements HardwareDevice {
      * @param max the maximum angle of the servo in the specified angle unit (when the servo is set to 1)
      */
     public ServoEx(HardwareMap hwMap, String id, double min, double max) {
-        if (max < min) {
-            throw new IllegalArgumentException("Minimum angle should be less than maximum angle");
-        }
-        if (min < 0) {
-            throw new IllegalArgumentException("Minimum angle should be greater than or equal to 0!");
-        }
         this.servo = hwMap.get(Servo.class, id);
         this.id = id;
         this.min = min;
         this.max = max;
     }
-
-    /**
-     *
-     * @param hwMap hardwareMap
-     * @param id the ID of the servo as configured
-     * @param range the angular range of the servo in the specified angle unit (from when the servo is set to 0 to 1)
-     * @param angleUnit the angle unit to be associated with the servo
-     */
-    public ServoEx(HardwareMap hwMap, String id, double range, AngleUnit angleUnit) {
-        this(hwMap, id, 0.0, range);
-    }
-
     /**
      * @param hwMap hardwareMap
      * @param id the ID of the servo as configured
@@ -59,25 +43,21 @@ public class ServoEx implements HardwareDevice {
         this(hwMap, id, 0.0, 1.0);
     }
 
-    // TODO: Actually implement this (needs more research on how it behaves with get and set positions)
-//    public void scaleRange(double min, double max) {
-//        servo.scaleRange(min, max);
-//    }
-
     /**
      * @param output the raw position (or angle if range or max + min were defined in constructor) the servo should be set to
      */
-    public void set(double output) {
-        setPosition((output - min) / (max - min));
+    public void setPosition(double output) {
+        curr_raw_pos = (output - min) / (max - min);
     }
 
     /**
-     * Method for wrapping all writes to setPositions to the servo to check for caching tolerance
-     * @param pos position requested to be written to the servo
+     * Updates the servo position to the specified angle in degrees.
+     * Run this every loop
      */
-    private void setPosition(double pos) {
-        if (Math.abs(pos - getRawPosition()) > cachingTolerance) {
-            servo.setPosition(pos);
+    public void update(){
+        if (Math.abs(curr_raw_pos - prev_raw_pos) > cachingTolerance) {
+            servo.setPosition(curr_raw_pos);
+            prev_raw_pos = curr_raw_pos;
         }
     }
 
@@ -88,8 +68,8 @@ public class ServoEx implements HardwareDevice {
     /**
      * @return the raw position of the servo between 0 and 1
      */
-    public double getRawPosition() {
-        return servo.getPosition();
+    private double getRawPosition() {
+        return curr_raw_pos;
     }
 
     /**
@@ -115,12 +95,6 @@ public class ServoEx implements HardwareDevice {
         return this;
     }
 
-    /**
-     * @return the SDK, unwrapped Servo object
-     */
-    public Servo getServo() {
-        return servo;
-    }
 
     /**
      * @return the extended servo controller object for the servo
@@ -160,5 +134,11 @@ public class ServoEx implements HardwareDevice {
     @Override
     public String getDeviceType() {
         return "Extended Servo; " + id + " from " + servo.getPortNumber();
+    }
+    /**
+     * @return the SDK, unwrapped Servo object
+     */
+    public Servo getServo() {
+        return servo;
     }
 }
