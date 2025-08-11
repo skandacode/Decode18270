@@ -98,7 +98,7 @@ public class AbsoluteAnalogEncoder implements HardwareDevice {
 
     @Override
     public void disable() {
-        // "take no action" (encoder.close() call in SDK)
+        encoder.close();
     }
 
     @Override
