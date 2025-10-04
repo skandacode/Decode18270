@@ -46,10 +46,39 @@ public class Spindexer implements Subsystem{
         spin2.setPosition(position.pos);
     }
 
+    public void shootPos(int index) {
+        if (index < 0 || index >= 3) return;
+        currentIndex = index;
+        if (index == 0) {
+            setPositions(SpindexerPositions.SHOOT1);
+        } else if (index == 1) {
+            setPositions(SpindexerPositions.SHOOT2);
+        } else {
+            setPositions(SpindexerPositions.SHOOT3);
+        }
+    }
+    public void afterShoot(){
+        artifactPositions[currentIndex] = Artifact.NONE;
+    }
+
+    public void intakePos(int index) {
+        if (index < 0 || index >= 3) return;
+        currentIndex = index;
+        if (index == 0) {
+            setPositions(SpindexerPositions.INTAKE1);
+        } else if (index == 1) {
+            setPositions(SpindexerPositions.INTAKE2);
+        } else {
+            setPositions(SpindexerPositions.INTAKE3);
+        }
+    }
+    public void afterIntake(Artifact artifact) {
+        artifactPositions[currentIndex] = artifact;
+    }
+
     @Override
     public void update() {
         spin1.update();
         spin2.update();
-
     }
 }
