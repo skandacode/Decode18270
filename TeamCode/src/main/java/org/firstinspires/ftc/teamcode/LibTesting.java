@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.bylazar.ftcontrol.panels.Panels;
-import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
-import com.bylazar.ftcontrol.panels.integration.TelemetryManager;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -26,7 +27,7 @@ public class LibTesting extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        panelsTelemetry = Panels.getTelemetry();
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         panelsTelemetry.debug("Init was ran!");
         panelsTelemetry.update(telemetry);
 
@@ -36,17 +37,13 @@ public class LibTesting extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            panelsTelemetry.debug("This is a line!");
-            panelsTelemetry.debug("Here is a variable: " + Math.PI);
-            panelsTelemetry.debug("Test variable: " + testVar);
-            panelsTelemetry.debug();
-            panelsTelemetry.debug("Color Value: "+color.getDistance(DistanceUnit.INCH));
-            panelsTelemetry.debug("Color last refresh: "+color.getLastRefresh());
-            panelsTelemetry.debug();
-            panelsTelemetry.debug("Distance Value: "+distance.getDistance(DistanceUnit.INCH));
-            panelsTelemetry.debug("Distance last refresh: "+distance.getLastRefresh());
-            panelsTelemetry.debug();
-            panelsTelemetry.update(telemetry);
+            telemetry.addData("This is a test var", testVar);
+            telemetry.addData("Red", color.red());
+            telemetry.addData("Color distance", color.getDistance(DistanceUnit.INCH));
+            telemetry.addData("Color last updated", color.getLastRefresh());
+            telemetry.addData("2m distance", distance.getDistance(DistanceUnit.INCH));
+            telemetry.addData("2m last updated", distance.getLastRefresh());
+            telemetry.update();
         }
     }
 }
