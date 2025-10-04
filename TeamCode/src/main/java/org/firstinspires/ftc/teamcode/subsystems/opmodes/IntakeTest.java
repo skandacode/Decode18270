@@ -4,23 +4,20 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 @TeleOp
 @Configurable
-public class DrivetrainTest extends LinearOpMode {
-    Drivetrain drivetrain;
-
-    public static double forward = 0.0;
-    public static double strafe = 0.0;
-    public static double turn = 0.0;
+public class IntakeTest extends LinearOpMode {
+    Intake intake;
+    public static double intakePower = 0.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        drivetrain = new Drivetrain(hardwareMap);
+        intake = new Intake(hardwareMap);
         waitForStart();
         while (opModeIsActive()) {
-            drivetrain.driveRobotCentric(forward, strafe, turn);
-            drivetrain.update();
+            intake.setPower(intakePower);
+            intake.update();
         }
     }
 }
