@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 public class IntakeTest extends LinearOpMode {
     Intake intake;
     public static double intakePower = 0.0;
-
+    
     @Override
     public void runOpMode() throws InterruptedException {
         intake = new Intake(hardwareMap);

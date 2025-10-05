@@ -41,7 +41,16 @@ public class Intake implements Subsystem {
     public Artifact getArtifact(){
         if(!isIntaked()) return Artifact.NONE;
 
-        int[] colors = getColor();
+        int[] colors = new int[3];
+        for (int i = 0; i < 10; i++) {
+            int[] sample = getColor();
+            colors[0] += sample[0];
+            colors[1] += sample[1];
+            colors[2] += sample[2];
+        }
+        colors[0] /= 10;
+        colors[1] /= 10;
+        colors[2] /= 10;
 
         double dist_purp =
                 (Artifact.PURPLE.r-colors[0])*(Artifact.PURPLE.r-colors[0])
