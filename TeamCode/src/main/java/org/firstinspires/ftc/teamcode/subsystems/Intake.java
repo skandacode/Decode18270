@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -8,11 +9,14 @@ import org.firstinspires.ftc.teamcode.Artifact;
 
 import solverslib.hardware.motors.Motor;
 
+@Configurable
 public class Intake implements Subsystem {
     private Motor intakeMotor;
     private double power = 0.0;
 
     private RevColorSensorV3 colorSensor;
+
+    public static int read_times = 10;
 
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = new Motor(hardwareMap, "intake_motor");
@@ -42,7 +46,7 @@ public class Intake implements Subsystem {
         if(!isIntaked()) return Artifact.NONE;
 
         int[] colors = new int[3];
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < read_times; i++) {
             int[] sample = getColor();
             colors[0] += sample[0];
             colors[1] += sample[1];

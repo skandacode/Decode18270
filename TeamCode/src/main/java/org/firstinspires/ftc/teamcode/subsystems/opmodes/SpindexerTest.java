@@ -12,7 +12,7 @@ public class SpindexerTest extends LinearOpMode {
         spindexer = new Spindexer(hardwareMap);
         waitForStart();
         while (opModeIsActive()) {
-            spindexer.setPositions(Spindexer.SpindexerPositions.INTAKE1);
+            spindexer.setPosition(Spindexer.SpindexerPositions.INTAKE1);
             telemetry.addData("Artifact Positions", java.util.Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.update();
             spindexer.update();

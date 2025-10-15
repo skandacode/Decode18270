@@ -10,8 +10,6 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
-import solverslib.gamepad.Button;
-import solverslib.gamepad.GamepadButton;
 import solverslib.gamepad.GamepadEx;
 import solverslib.gamepad.GamepadKeys;
 
@@ -40,6 +38,8 @@ public class Teleop extends LinearOpMode {
     }
 
     int[] shootorder = {0, 1, 2};
+    private static final int NUM_INTAKE_STATES = 3;
+    private static final int NUM_SHOOT_STATES = 3;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -54,119 +54,101 @@ public class Teleop extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
 
-        StateMachine stateMachine = new StateMachineBuilder()
-                .state(RobotState.Intake1)
-                .onEnter(()->{
+        StateMachineBuilder builder = new StateMachineBuilder();
+
+        for (int i = 0; i < NUM_INTAKE_STATES; i++) {
+            final int pos = i;
+            RobotState currentState = RobotState.Intake1;
+            if (i == 1) currentState = RobotState.Intake2;
+            else if (i == 2) currentState = RobotState.Intake3;
+            
+            builder.state(currentState)
+                .onEnter(() -> {
                     intake.setPower(1);
-                    spindexer.intakePos(0);
+                    spindexer.intakePos(pos);
                 })
-                .onExit(()->{
+                .onExit(() -> {
                     spindexer.afterIntake(intake.getArtifact());
-                    spindexer.intakePos(1);
+                    if (pos < NUM_INTAKE_STATES - 1) {
+                        spindexer.intakePos(pos + 1);
+                    } else {
+                        spindexer.shootPos(shootorder[0]);
+                    }
                 })
-                .transition(()->intake.isIntaked())
+                .transition(() -> intake.isIntaked());
+        }
 
-                .state(RobotState.Intake2)
-                .onEnter(()->{
-                    intake.setPower(1);
-                    spindexer.intakePos(1);
-                })
-                .onExit(()->{
-                    spindexer.afterIntake(intake.getArtifact());
-                    spindexer.intakePos(2);
-                })
-                .transition(()->intake.isIntaked())
+        builder.state(RobotState.WaitForShoot)
+            .transition(() -> gamepadEx.getButton(shooterButton));
 
-                .state(RobotState.Intake3)
-                .onEnter(()->{
-                    intake.setPower(1);
-                    spindexer.intakePos(2);
-                })
-                .onExit(()->{
-                    spindexer.afterIntake(intake.getArtifact());
-                    spindexer.shootPos(shootorder[0]);
-                })
-                .transition(()->intake.isIntaked())
+        // Build shoot states dynamically
+        for (int i = 0; i < NUM_SHOOT_STATES; i++) {
+            final int shootIndex = i;
+            RobotState preShootState = RobotState.PreShoot1;
+            if (i == 1) preShootState = RobotState.PreShoot2;
+            else if (i == 2) preShootState = RobotState.PreShoot3;
 
-                .state(RobotState.WaitForShoot)
-                .transition(()->gamepadEx.getButton(shooterButton))
+            RobotState shootState = RobotState.Shoot1;
+            if (i == 1) shootState = RobotState.Shoot2;
+            else if (i == 2) shootState = RobotState.Shoot3;
+            
+            // PreShoot state
+            builder.state(preShootState)
+                .onEnter(() -> spindexer.shootPos(shootorder[shootIndex]))
+                .transitionTimed(0.5);
 
-                .state(RobotState.PreShoot1)
-                .onEnter(()->{
-                    spindexer.shootPos(shootorder[0]);
-                })
-                .transitionTimed(0.5)
+            // Shoot state
+            StateMachineBuilder stateBuilder = builder.state(shootState)
+                .onEnter(() -> shooter.kickerUp());
+            
+            if (i < NUM_SHOOT_STATES - 1) {
+                // Not the last shoot state
+                stateBuilder.transitionTimed(0.3)
+                    .onExit(() -> {
+                        shooter.kickerDown();
+                        spindexer.afterShoot();
+                        spindexer.shootPos(shootorder[shootIndex + 1]);
+                    });
+            } else {
+                // Last shoot state - loop back to Intake1
+                stateBuilder.transitionTimed(0.3, RobotState.Intake1)
+                    .onExit(() -> {
+                        shooter.kickerDown();
+                        spindexer.afterShoot();
+                        spindexer.intakePos(0);
+                    });
+            }
+        }
 
-                .state(RobotState.Shoot1)
-                .onEnter(()->{
-                    shooter.kickerUp();
-                })
-                .transitionTimed(0.3)
-
-                .onExit(()->{
-                    shooter.kickerDown();
-                    spindexer.afterShoot();
-                    spindexer.shootPos(shootorder[1]);
-                })
-
-                .state(RobotState.PreShoot2)
-                .onEnter(()->{
-                    spindexer.shootPos(shootorder[1]);
-                })
-                .transitionTimed(0.5)
-
-                .state(RobotState.Shoot2)
-                .onEnter(()->{
-                    shooter.kickerUp();
-                })
-                .transitionTimed(0.3)
-                .onExit(()->{
-                    shooter.kickerDown();
-                    spindexer.afterShoot();
-                    spindexer.shootPos(shootorder[2]);
-                })
-                .state(RobotState.PreShoot3)
-                .onEnter(()->{
-                    spindexer.shootPos(shootorder[2]);
-                })
-                .transitionTimed(0.5)
-                .state(RobotState.Shoot3)
-                .onEnter(()->{
-                    shooter.kickerUp();
-                })
-                .transitionTimed(0.3, RobotState.Intake1)
-                .onExit(()->{
-                    shooter.kickerDown();
-                    spindexer.afterShoot();
-                    spindexer.intakePos(0);
-                })
-
-                .build();
-
+        StateMachine stateMachine = builder.build();
 
         waitForStart();
         stateMachine.start();
+        
         while (opModeIsActive()) {
             // Drivetrain control
             double forward = gamepadEx.getLeftY();
             double strafe = gamepadEx.getLeftX();
             double turn = gamepadEx.getRightX();
-            if (gamepadEx.getButton(slowModeButton)){
+            
+            if (gamepadEx.getButton(slowModeButton)) {
                 forward *= 0.3;
                 strafe *= 0.3;
                 turn *= -0.3;
             }
+            
             drivetrain.driveRobotCentric(forward, strafe, turn);
 
             // Intake control
             if (gamepadEx.getButton(intakeStopButton)) {
-                intake.setPower(0); // Stop intake
-            } else {
-                if (!currEject) {
-                    intake.setPower(1); // Run intake
-                }
+                intake.setPower(0);
+            } else if (!currEject) {
+                intake.setPower(1);
             }
+            
             shooter.setTargetVelo(targetVelo);
+            
+            // Update all subsystems
             stateMachine.update();
             drivetrain.update();
             intake.update();
