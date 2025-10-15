@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
@@ -27,7 +26,6 @@ public class LibTesting extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         panelsTelemetry.debug("Init was ran!");
         panelsTelemetry.update(telemetry);
 

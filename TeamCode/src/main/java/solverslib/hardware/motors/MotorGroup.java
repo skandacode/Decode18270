@@ -41,6 +41,13 @@ public class MotorGroup extends Motor implements Iterable<Motor> {
         }
     }
 
+    @Override
+    public void update(){
+        for (Motor motor : group){
+            motor.update();
+        }
+    }
+
     /**
      * @return The speed as a percentage of output
      */

@@ -2,12 +2,12 @@ package org.firstinspires.ftc.teamcode;
 
 public enum Artifact {
     NONE(0, 0, 0),
-    GREEN(0, 255, 0),
-    PURPLE(128, 0, 128);
+    GREEN(0.093, 0.514, 0.393),
+    PURPLE(0.2, 0.25, 0.524);
 
-    public final int r, g, b;
+    public final double r, g, b;
 
-    Artifact(int r, int g, int b) {
+    Artifact(double r, double g, double b) {
         this.r = r;
         this.g = g;
         this.b = b;

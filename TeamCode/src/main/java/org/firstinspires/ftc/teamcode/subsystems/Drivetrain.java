@@ -17,10 +17,18 @@ public class Drivetrain implements Subsystem{
     private double turnPower = 0.0;
 
     public Drivetrain(HardwareMap hardwareMap) {
-        Motor frontLeft = new Motor(hardwareMap, "front_left");
-        Motor frontRight = new Motor(hardwareMap, "front_right");
-        Motor backLeft = new Motor(hardwareMap, "back_left");
-        Motor backRight = new Motor(hardwareMap, "back_right");
+        Motor frontLeft = new Motor(hardwareMap, "frontleft");
+        Motor frontRight = new Motor(hardwareMap, "frontright");
+        Motor backLeft = new Motor(hardwareMap, "backleft");
+        Motor backRight = new Motor(hardwareMap, "backright");
+        frontLeft.setInverted(true);
+        backLeft.setInverted(true);
+        frontRight.setInverted(false);
+        backRight.setInverted(false);
+        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         drive = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 

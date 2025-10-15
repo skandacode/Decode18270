@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems.opmodes;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,11 +11,12 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 @Configurable
 public class ShooterTest extends LinearOpMode {
     Shooter shooter;
-    public static double shooterPower = 0.0;
+    public static double shooterPower = 0;
     public static boolean kick = false;
     public static double turretangle = 0;
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         shooter = new Shooter(hardwareMap);
         waitForStart();
         while (opModeIsActive()) {
@@ -25,6 +28,7 @@ public class ShooterTest extends LinearOpMode {
                 shooter.kickerDown();
             }
             shooter.setTurretAngle(turretangle);
+            telemetry.addData("Shooter Target", shooter.targetVelo);
             telemetry.addData("Shooter Velocity", shooter.getCurrentVelo());
             telemetry.update();
             shooter.update();

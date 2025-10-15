@@ -11,22 +11,21 @@ public class Shooter implements Subsystem {
     public static double SERVO_TO_DEGREES = 300.0;
     public static double TURRET_OFFSET = 0.5;
 
-    private Motor shooterMotors;
+    private Motor shooterMotor1, shooterMotor2;
     //private final ServoEx turret1;
     //private final ServoEx turret2;
     private ServoEx kicker1;
     private ServoEx kicker2;
 
     private double currentVelo = 0.0;
-    private double targetVelo = 0.0;
+    public double targetVelo = 0.0;
 
-    public static double kickerUpPos = 0.3;
-    public static double kickerDownPos = 0.52;
+    public static double kickerUpPos = 0.28;
+    public static double kickerDownPos = 0.4;
 
     public Shooter(HardwareMap hardwareMap) {
-        Motor shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
-        Motor shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
-        shooterMotors = new MotorGroup(shooterMotor1, shooterMotor2);
+        shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
+        shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
 
         //turret1 = new ServoEx(hardwareMap, "turret1");
         //turret2 = new ServoEx(hardwareMap, "turret2");
@@ -58,11 +57,26 @@ public class Shooter implements Subsystem {
 
     @Override
     public void update() {
-        currentVelo = shooterMotors.getVelocity();
-        shooterMotors.set(targetVelo < currentVelo ? 0.0 : 1.0);
+        if (targetVelo == 0){
+            shooterMotor1.set(0);
+            shooterMotor2.set(0);
+        }else {
+            currentVelo = Math.abs(shooterMotor2.getCorrectedVelocity());
+
+            if (targetVelo <= currentVelo) {
+                shooterMotor1.set(0);
+                shooterMotor2.set(0);
+            } else {
+                shooterMotor1.set(-1);
+                shooterMotor2.set(1);
+            }
+        }
         kicker1.update();
         kicker2.update();
         //turret1.update();
         //turret2.update();
+        shooterMotor1.update();
+        shooterMotor2.update();
+        System.out.println("Update is running");
     }
 }

@@ -20,6 +20,7 @@ public class MecanumDrive extends RobotDrive {
      */
     public MecanumDrive(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight) {
         motors = new Motor[]{frontLeft, frontRight, backLeft, backRight};
+        rightSideMultiplier =1;
     }
     /**
      * Sets the range of the input, see RobotDrive for more info.

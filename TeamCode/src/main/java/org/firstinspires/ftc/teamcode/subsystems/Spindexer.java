@@ -103,6 +103,15 @@ public class Spindexer implements Subsystem{
         return encoderPos;
     }
 
+    public int getIndex(Artifact artifact){
+        for (int index = 0; index < artifactPositions.length; index++) {
+            if (artifactPositions[index] == artifact) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
     @Override
     public void update() {
         double error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES);

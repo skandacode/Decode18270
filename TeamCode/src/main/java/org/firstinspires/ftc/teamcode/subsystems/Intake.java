@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Artifact;
 
+import java.util.Arrays;
+
 import solverslib.hardware.motors.Motor;
 
 @Configurable
@@ -19,7 +21,7 @@ public class Intake implements Subsystem {
     public static int read_times = 10;
 
     public Intake(HardwareMap hardwareMap) {
-        intakeMotor = new Motor(hardwareMap, "intake_motor");
+        intakeMotor = new Motor(hardwareMap, "intake");
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "intake_color_sensor");
     }
 
@@ -35,26 +37,30 @@ public class Intake implements Subsystem {
     public double getIntakeDistance(){
         return colorSensor.getDistance(DistanceUnit.INCH);
     }
-    public int[] getColor(){
-        return new int[]{colorSensor.red(), colorSensor.green(), colorSensor.blue()};
+    public double[] getColor(){
+        int[] raw = new int[]{colorSensor.red(), colorSensor.green(), colorSensor.blue()};
+        double sum = raw[0]+raw[1]+raw[2];
+        return new double[]{raw[0]/sum, raw[1]/sum, raw[2]/sum};
     }
 
     public boolean isIntaked(){
-        return getIntakeDistance() < 3.0;
+        return getIntakeDistance() < 1.5;
     }
     public Artifact getArtifact(){
         if(!isIntaked()) return Artifact.NONE;
 
-        int[] colors = new int[3];
+        double[] colors = new double[3];
         for (int i = 0; i < read_times; i++) {
-            int[] sample = getColor();
+            double [] sample = getColor();
             colors[0] += sample[0];
             colors[1] += sample[1];
             colors[2] += sample[2];
         }
-        colors[0] /= 10;
-        colors[1] /= 10;
-        colors[2] /= 10;
+        colors[0] /= read_times;
+        colors[1] /= read_times;
+        colors[2] /= read_times;
+
+        System.out.println("Artifact color "+Arrays.toString(colors));
 
         double dist_purp =
                 (Artifact.PURPLE.r-colors[0])*(Artifact.PURPLE.r-colors[0])
@@ -64,7 +70,7 @@ public class Intake implements Subsystem {
                 (Artifact.GREEN.r-colors[0])*(Artifact.GREEN.r-colors[0])
                 +(Artifact.GREEN.g-colors[1])*(Artifact.GREEN.g-colors[1])
                 +(Artifact.GREEN.b-colors[2])*(Artifact.GREEN.b-colors[2]);
-
+        System.out.println("Artifact color "+dist_purp+"   "+dist_green);
         if(dist_green < dist_purp) return Artifact.GREEN;
         else return Artifact.PURPLE;
 
