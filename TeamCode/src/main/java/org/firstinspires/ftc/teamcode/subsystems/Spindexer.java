@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Artifact;
 
 import solverslib.controller.PIDFController;
+import solverslib.controller.feedforwards.SimpleMotorFeedforward;
 import solverslib.hardware.AbsoluteAnalogEncoder;
 import solverslib.hardware.motors.Motor;
 import solverslib.util.MathUtils;
@@ -14,22 +16,25 @@ import solverslib.util.MathUtils;
 @Configurable
 public class Spindexer implements Subsystem{
     private Motor spindexerMotor;
-    private AbsoluteAnalogEncoder spindexerEncoder;
+    private AnalogInput spindexerEncoder;
 
     private Artifact[] artifactPositions;
     private int currentIndex = 0;
     private double encoderPos = 0;
 
     public static double ABS_OFFSET = 0.0;
-    public static double ABS_VOLTS_PER_ROT = 3.3;
 
 
-    public static double kP = 0.01;
+    public static double kP = 0.008;
     public static double kI = 0.0;
     public static double kD = 0.0;
     public static double kF = 0.0;
 
+    public static double kS = 0.04;
+    public static double kV = 1;
+
     private PIDFController spindexerController;
+    private SimpleMotorFeedforward feedforward;
 
 
     public enum SpindexerPositions{
@@ -43,7 +48,7 @@ public class Spindexer implements Subsystem{
         public final double pos;
 
         SpindexerPositions(double pos) {
-            this.pos = pos/360.0;
+            this.pos = pos;
         }
     }
 
@@ -52,8 +57,9 @@ public class Spindexer implements Subsystem{
 
     public Spindexer(HardwareMap hardwareMap, Artifact[] startingPositions) {
         spindexerController = new PIDFController(kP, kI, kD, kF);
+        feedforward = new SimpleMotorFeedforward(kS, kV, 0);
         spindexerMotor = new Motor(hardwareMap, "spindexer_motor");
-        spindexerEncoder = new AbsoluteAnalogEncoder(hardwareMap, "spindexer_encoder", ABS_VOLTS_PER_ROT, AngleUnit.DEGREES);
+        spindexerEncoder = hardwareMap.analogInput.get("spindexer_encoder");
         artifactPositions = startingPositions;
         curr_pos = SpindexerPositions.INTAKE1.pos;
     }
@@ -114,10 +120,17 @@ public class Spindexer implements Subsystem{
 
     @Override
     public void update() {
-        double error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES);
-        double power = spindexerController.calculate(error, 0);
-        spindexerMotor.set(power);
+        double error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
+        double power = feedforward.calculate(spindexerController.calculate(error, 0));
+        if (Math.abs(error)<1){
+            power=0;
+        }
+        System.out.println(error+"     "+power);
+        spindexerMotor.set(-power);
         spindexerMotor.update();
-        encoderPos = spindexerEncoder.getCurrentPosition()/360.0 + ABS_OFFSET;
+        encoderPos = getEncoderDegrees();
+    }
+    private double getEncoderDegrees(){
+        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()-0.043)/3.1*360 + ABS_OFFSET);
     }
 }
