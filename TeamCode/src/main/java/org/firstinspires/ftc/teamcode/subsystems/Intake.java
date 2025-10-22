@@ -30,7 +30,7 @@ public class Intake implements Subsystem {
     }
     @Override
     public void update() {
-        intakeMotor.set(power);
+        intakeMotor.set(-power);
         intakeMotor.update();
     }
 

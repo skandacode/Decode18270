@@ -21,8 +21,10 @@ public class Spindexer implements Subsystem{
     private Artifact[] artifactPositions;
     private int currentIndex = 0;
     private double encoderPos = 0;
+    private double error;
 
-    public static double ABS_OFFSET = 0.0;
+    public static double ABS_OFFSET = 50.0;
+    public static double errorTolerance = 10;
 
 
     public static double kP = 0.008;
@@ -105,6 +107,10 @@ public class Spindexer implements Subsystem{
         artifactPositions[currentIndex] = artifact;
     }
 
+    public boolean atTarget(){
+        return Math.abs(error) < errorTolerance;
+    }
+
     public double getEncoderPosition(){
         return encoderPos;
     }
@@ -120,7 +126,7 @@ public class Spindexer implements Subsystem{
 
     @Override
     public void update() {
-        double error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
+        error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
         double power = feedforward.calculate(spindexerController.calculate(error, 0));
         if (Math.abs(error)<1){
             power=0;

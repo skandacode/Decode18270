@@ -29,10 +29,9 @@ public class Teleop extends LinearOpMode {
     Intake intake;
     Shooter shooter;
     Spindexer spindexer;
-    boolean currEject = false;
 
-    double targetVelo = 1700;
-
+    double targetVelo = 1200;
+    public static double timeforkicker = 0.15;
     enum RobotState {
         Intake1, wait1,
         Intake2, wait2,
@@ -69,7 +68,12 @@ public class Teleop extends LinearOpMode {
 
         GamepadKeys.Button slowModeButton = GamepadKeys.Button.RIGHT_BUMPER;
         GamepadKeys.Button intakeStopButton = GamepadKeys.Button.A;
+        GamepadKeys.Button intakeEjectButton = GamepadKeys.Button.OPTIONS;
+
         GamepadKeys.Button farShootButton = GamepadKeys.Button.LEFT_BUMPER;
+
+        GamepadKeys.Trigger turnOnAutoFireButton = GamepadKeys.Trigger.LEFT_TRIGGER;
+        GamepadKeys.Trigger turnOffAutoFireButton = GamepadKeys.Trigger.RIGHT_TRIGGER;
 
 
         drivetrain = new Drivetrain(hardwareMap);
@@ -80,40 +84,42 @@ public class Teleop extends LinearOpMode {
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
                 .onEnter(()->{
-                    intake.setPower(-1);
                     spindexer.intakePos(0);
                 })
-                .onExit(()->{
+                .transition(()->intake.isIntaked())
+
+                .state(RobotState.wait1)
+                .onEnter(()->{
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(1);
                 })
-                .transition(()->intake.isIntaked())
-                .state(RobotState.wait1)
-                .transitionTimed(0.25)
+                .transitionTimed(0.15)
+
                 .state(RobotState.Intake2)
                 .onEnter(()->{
-                    intake.setPower(-1);
                     spindexer.intakePos(1);
                 })
-                .onExit(()->{
+                .transition(()->intake.isIntaked())
+
+                .state(RobotState.wait2)
+                .onEnter(()->{
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(2);
                 })
-                .transition(()->intake.isIntaked())
-                .state(RobotState.wait2)
-                .transitionTimed(0.25)
+                .transitionTimed(0.15)
+
                 .state(RobotState.Intake3)
                 .onEnter(()->{
-                    intake.setPower(-1);
                     spindexer.intakePos(2);
-                })
-                .onExit(() -> {
-                    spindexer.afterIntake(intake.getArtifact());
                 })
                 .transition(()->intake.isIntaked())
 
                 .state(RobotState.wait3)
-                .transitionTimed(0.25)
+                .onEnter(()->{
+                    spindexer.afterIntake(intake.getArtifact());
+                    spindexer.shootPos(0);
+                })
+                .transition(()->spindexer.atTarget())
 
                 .state(RobotState.WaitForShoot)
                 .transition(()->gamepadEx.getButton(shooterButtonAll), ()->autofire=true)
@@ -136,13 +142,13 @@ public class Teleop extends LinearOpMode {
                         currShoot=Artifact.NONE;
                     }
                 })
-                .transitionTimed(0.5)
+                .transition(()->spindexer.atTarget())
 
                 .state(RobotState.Shoot1)
                 .onEnter(()->{
                     shooter.kickerUp();
                 })
-                .transitionTimed(0.3)
+                .transitionTimed(timeforkicker)
 
                 .onExit(()->{
                     shooter.kickerDown();
@@ -168,13 +174,13 @@ public class Teleop extends LinearOpMode {
                         currShoot=Artifact.NONE;
                     }
                 })
-                .transitionTimed(0.5)
+                .transitionTimed(timeforkicker)
 
                 .state(RobotState.Shoot2)
                 .onEnter(()->{
                     shooter.kickerUp();
                 })
-                .transitionTimed(0.3)
+                .transitionTimed(timeforkicker)
                 .onExit(()->{
                     shooter.kickerDown();
                     spindexer.afterShoot();
@@ -201,12 +207,13 @@ public class Teleop extends LinearOpMode {
                         currShoot=Artifact.NONE;
                     }
                 })
-                .transitionTimed(0.5)
+                .transitionTimed(timeforkicker)
+
                 .state(RobotState.Shoot3)
                 .onEnter(()->{
                     shooter.kickerUp();
                 })
-                .transitionTimed(0.3, RobotState.Intake1)
+                .transitionTimed(timeforkicker, RobotState.Intake1)
                 .onExit(()->{
                     shooter.kickerDown();
                     spindexer.afterShoot();
@@ -234,16 +241,24 @@ public class Teleop extends LinearOpMode {
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0); // Stop intake
             } else {
-                if (!currEject) {
-                    intake.setPower(-1); // Run intake
+                if (gamepadEx.getButton(intakeEjectButton)) {
+                    intake.setPower(-1); // Eject intake
+                }else{
+                    intake.setPower(1);
                 }
             }
             if (gamepadEx.getButton(farShootButton)){
-                targetVelo=2800;
+                targetVelo=1180;
             }else{
-                targetVelo=1850;
-
+                targetVelo=840;
             }
+
+            if (gamepadEx.getTrigger(turnOnAutoFireButton)>0.5){
+                autofire = true;
+            } else if (gamepadEx.getTrigger(turnOffAutoFireButton)>0.5){
+                autofire = false;
+            }
+
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());
 

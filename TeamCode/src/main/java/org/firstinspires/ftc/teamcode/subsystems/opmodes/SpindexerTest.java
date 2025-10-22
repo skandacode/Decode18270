@@ -24,10 +24,20 @@ public class SpindexerTest extends LinearOpMode {
                 currPos = Spindexer.SpindexerPositions.INTAKE3;
             }else if (gamepad1.dpad_down){
                 currPos = Spindexer.SpindexerPositions.SHOOT1;
+            }else if (gamepad1.dpad_right){
+                currPos = Spindexer.SpindexerPositions.SHOOT2;
+            }else if (gamepad1.dpad_up){
+                currPos = Spindexer.SpindexerPositions.SHOOT3;
             }
             spindexer.setPosition(currPos);
             telemetry.addData("Artifact Positions", java.util.Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("Spindexer Position", spindexer.getEncoderPosition());
+            if (spindexer.atTarget()){
+                telemetry.addData("At Target", 180);
+            }else{
+                telemetry.addData("At Target", -180);
+            }
+            telemetry.addData("At Target", spindexer.atTarget());
             telemetry.update();
             spindexer.update();
         }
