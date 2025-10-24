@@ -31,7 +31,8 @@ public class Teleop extends LinearOpMode {
     Spindexer spindexer;
 
     double targetVelo = 1200;
-    public static double timeforkicker = 0.15;
+    public static double timeforkicker = 0.25;
+    public static double timeForIntake = 0.2;
     enum RobotState {
         Intake1, wait1,
         Intake2, wait2,
@@ -93,7 +94,7 @@ public class Teleop extends LinearOpMode {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(1);
                 })
-                .transitionTimed(0.15)
+                .transitionTimed(timeForIntake)
 
                 .state(RobotState.Intake2)
                 .onEnter(()->{
@@ -106,7 +107,7 @@ public class Teleop extends LinearOpMode {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(2);
                 })
-                .transitionTimed(0.15)
+                .transitionTimed(timeForIntake)
 
                 .state(RobotState.Intake3)
                 .onEnter(()->{
@@ -225,6 +226,7 @@ public class Teleop extends LinearOpMode {
 
         waitForStart();
         stateMachine.start();
+        shooter.kickerDown();
         while (opModeIsActive()) {
             // Drivetrain control
             double forward = gamepadEx.getLeftY();

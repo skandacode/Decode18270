@@ -27,6 +27,8 @@ public class SpindexerWithoutClass extends LinearOpMode {
             spindexer.set(power);
             spindexer.update();
             telemetry.addData("EncoderPos", AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()-0.043)/3.1*360 + 0));
+            telemetry.addData("EncoderVoltage", (spindexerEncoder.getVoltage()));
+
             counter++;
             if (counter>180){
                 counter = -180;
