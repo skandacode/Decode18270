@@ -20,8 +20,8 @@ public class Shooter implements Subsystem {
     private double currentVelo = 0.0;
     public double targetVelo = 0.0;
 
-    public static double kickerUpPos = 0.28;
-    public static double kickerDownPos = 0.4;
+    public static double kickerUpPos = 0.25;
+    public static double kickerDownPos = 0.42;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");

@@ -23,7 +23,7 @@ public class Spindexer implements Subsystem{
     private double encoderPos = 0;
     private double error;
 
-    public static double ABS_OFFSET = 120.0;
+    public static double ABS_OFFSET = 100;
     public static double errorTolerance = 10;
 
 
@@ -40,12 +40,12 @@ public class Spindexer implements Subsystem{
 
 
     public enum SpindexerPositions{
-        INTAKE1(0),
-        INTAKE2(120),
-        INTAKE3(240),
-        SHOOT1(-173),
-        SHOOT2(300),
-        SHOOT3(50);
+        INTAKE1(30),
+        INTAKE2(145),
+        INTAKE3(270),
+        SHOOT1(-146),
+        SHOOT2(-25),
+        SHOOT3(93);
 
         public final double pos;
 
@@ -137,7 +137,7 @@ public class Spindexer implements Subsystem{
         encoderPos = getEncoderDegrees();
     }
     private double getEncoderDegrees(){
-        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()-0.043)/3.1*360 + ABS_OFFSET);
+        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage())/3.227*360 + ABS_OFFSET);
     }
     private double getEncoderVoltage(){
         return (spindexerEncoder.getVoltage());

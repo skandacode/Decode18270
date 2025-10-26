@@ -30,9 +30,10 @@ public class Teleop extends LinearOpMode {
     Shooter shooter;
     Spindexer spindexer;
 
-    double targetVelo = 1200;
-    public static double timeforkicker = 0.25;
-    public static double timeForIntake = 0.2;
+    double targetVelo = 1350;
+    public static double timeforkicker = 0.2;
+    public static double timeforspin = 0.34;
+    public static double timeForIntake = 0.23;
     enum RobotState {
         Intake1, wait1,
         Intake2, wait2,
@@ -175,7 +176,7 @@ public class Teleop extends LinearOpMode {
                         currShoot=Artifact.NONE;
                     }
                 })
-                .transitionTimed(timeforkicker)
+                .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot2)
                 .onEnter(()->{
@@ -208,7 +209,7 @@ public class Teleop extends LinearOpMode {
                         currShoot=Artifact.NONE;
                     }
                 })
-                .transitionTimed(timeforkicker)
+                .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot3)
                 .onEnter(()->{
@@ -250,9 +251,9 @@ public class Teleop extends LinearOpMode {
                 }
             }
             if (gamepadEx.getButton(farShootButton)){
-                targetVelo=1180;
+                targetVelo=2400;
             }else{
-                targetVelo=840;
+                targetVelo=1460;
             }
 
             if (gamepadEx.getTrigger(turnOnAutoFireButton)>0.5){
@@ -263,6 +264,7 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());
+            telemetry.addData("Shooter Velo", shooter.getCurrentVelo());
 
             shooter.setTargetVelo(targetVelo);
             gamepadEx.readButtons();

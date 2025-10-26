@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.subsystems.Spindexer.ABS_OFFSET;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -26,7 +28,7 @@ public class SpindexerWithoutClass extends LinearOpMode {
         while (opModeIsActive()){
             spindexer.set(power);
             spindexer.update();
-            telemetry.addData("EncoderPos", AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()-0.043)/3.1*360 + 0));
+            telemetry.addData("EncoderPos", AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage())/3.227*360 + ABS_OFFSET));
             telemetry.addData("EncoderVoltage", (spindexerEncoder.getVoltage()));
 
             counter++;
