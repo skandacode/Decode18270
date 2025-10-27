@@ -239,7 +239,6 @@ public class Teleop extends LinearOpMode {
                 turn *= 0.3;
             }
             drivetrain.driveRobotCentric(forward, strafe, turn);
-            shooter.setTurretAngle(0);
             // Intake control
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0); // Stop intake
@@ -264,9 +263,9 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());
-            telemetry.addData("Shooter Velo", shooter.getCurrentVelo());
+            telemetry.addData("Shooter Velo", shooter.getCurrentVelocity());
 
-            shooter.setTargetVelo(targetVelo);
+            shooter.setTargetVelocity(targetVelo);
             gamepadEx.readButtons();
             stateMachine.update();
             drivetrain.update();

@@ -21,16 +21,15 @@ public class ShooterTest extends LinearOpMode {
         waitForStart();
         long t1 = System.nanoTime();
         while (opModeIsActive()) {
-            shooter.setTargetVelo(shooterPower);
+            shooter.setTargetVelocity(shooterPower);
             if (kick){
                 shooter.kickerUp();
             }
             else{
                 shooter.kickerDown();
             }
-            shooter.setTurretAngle(turretangle);
-            telemetry.addData("Shooter Target", shooter.targetVelo);
-            telemetry.addData("Shooter Velocity", shooter.getCurrentVelo());
+            telemetry.addData("Shooter Target", shooter.getTargetVelo());
+            telemetry.addData("Shooter Velocity", shooter.getCurrentVelocity());
             shooter.update();
             long t2 = System.nanoTime();
             long dt = t2-t1;

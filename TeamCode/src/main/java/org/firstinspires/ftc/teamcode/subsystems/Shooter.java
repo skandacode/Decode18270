@@ -1,90 +1,93 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import solverslib.hardware.ServoEx;
-import solverslib.hardware.motors.Motor;
-import solverslib.hardware.motors.MotorGroup;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+import solverslib.controller.PIDFController;
 
-@Configurable
 public class Shooter implements Subsystem {
-    public static double SERVO_TO_DEGREES = 300.0;
-    public static double TURRET_OFFSET = 0.5;
 
-    private Motor shooterMotor1, shooterMotor2;
-    //private final ServoEx turret1;
-    //private final ServoEx turret2;
-    private ServoEx kicker1;
-    private ServoEx kicker2;
+    private DcMotorEx shooterMotor1, shooterMotor2;
+    private Servo kicker1, kicker2;
 
-    private double currentVelo = 0.0;
-    public double targetVelo = 0.0;
+    private PIDFController pidf;
+    private double targetVelocity = 0.0;
+    private double currentVelocity = 0.0;
 
-    public static double kickerUpPos = 0.25;
-    public static double kickerDownPos = 0.42;
+    // --- PIDF coefficients ---
+    private double kP = 0.0009;
+    private double kI = 0.0001;
+    private double kD = 0.0002;
+    private double kF = 0.00015;
+
+    // --- Kicker positions ---
+    private static final double KICKER_UP = 0.25;
+    private static final double KICKER_DOWN = 0.42;
+
+    // --- Low-pass filter coefficient (for smoothing) ---
+    private static final double ALPHA = 0.3;
+    private double smoothedVelocity = 0.0;
 
     public Shooter(HardwareMap hardwareMap) {
-        shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
-        shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
+        shooterMotor1 = hardwareMap.get(DcMotorEx.class, "outtakemotor1");
+        shooterMotor2 = hardwareMap.get(DcMotorEx.class, "outtakemotor2");
 
-        //turret1 = new ServoEx(hardwareMap, "turret1");
-        //turret2 = new ServoEx(hardwareMap, "turret2");
-        kicker1 = new ServoEx(hardwareMap, "kicker1");
-        kicker2 = new ServoEx(hardwareMap, "kicker2");
+        kicker1 = hardwareMap.get(Servo.class, "kicker1");
+        kicker2 = hardwareMap.get(Servo.class, "kicker2");
+
+        shooterMotor1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+        pidf = new PIDFController(kP, kI, kD, kF);
     }
 
-    public void setTargetVelo(double targetVelo) {
-        this.targetVelo = targetVelo;
+    public void setTargetVelocity(double target) {
+        targetVelocity = target;
+        pidf.reset();
     }
 
-    public void setTurretAngle(double angle) {
-        double position = angle / SERVO_TO_DEGREES + TURRET_OFFSET;
-        //turret1.setPosition(position);
-        //turret2.setPosition(position);
-    }
-    public void setDirectMotorPower(double power) {
-        shooterMotor1.set(power);
-        shooterMotor2.set(-power);
-
-        shooterMotor1.update();
-        shooterMotor2.update();
-        currentVelo = Math.abs(shooterMotor2.getCorrectedVelocity());
+    public double getCurrentVelocity() {
+        return currentVelocity;
     }
 
-    public double getCurrentVelo() {
-        return currentVelo;
+    public void setDirectPower(double power) {
+        shooterMotor1.setPower(-power);
+        shooterMotor2.setPower(power);
     }
+
     public void kickerUp() {
-        kicker1.setPosition(kickerUpPos);
-        kicker2.setPosition(1-kickerUpPos);
+        kicker1.setPosition(KICKER_UP);
+        kicker2.setPosition(1 - KICKER_UP);
     }
+
     public void kickerDown() {
-        kicker1.setPosition(kickerDownPos);
-        kicker2.setPosition(1-kickerDownPos);
+        kicker1.setPosition(KICKER_DOWN);
+        kicker2.setPosition(1 - KICKER_DOWN);
     }
 
     @Override
     public void update() {
-        if (targetVelo == 0){
-            shooterMotor1.set(0);
-            shooterMotor2.set(0);
-        }else {
-            currentVelo = Math.abs(shooterMotor2.getCorrectedVelocity());
+        // Measure velocity (assuming shooterMotor2 has encoder plugged in)
+        currentVelocity = Math.abs(shooterMotor2.getVelocity());
+        smoothedVelocity = ALPHA * currentVelocity + (1 - ALPHA) * smoothedVelocity;
 
-            if (targetVelo <= currentVelo) {
-                shooterMotor1.set(0);
-                shooterMotor2.set(0);
-            } else {
-                shooterMotor1.set(-1);
-                shooterMotor2.set(1);
-            }
+        double outputPower;
+
+        if (targetVelocity <= 0) {
+            outputPower = 0;
+            smoothedVelocity = 0;
+        } else {
+            outputPower = pidf.calculate(smoothedVelocity, targetVelocity);
         }
-        kicker1.update();
-        kicker2.update();
-        //turret1.update();
-        //turret2.update();
-        shooterMotor1.update();
-        shooterMotor2.update();
-        System.out.println("Update is running");
+
+        // Clamp to [-1, 1] range for safety
+        outputPower = Math.max(-1, Math.min(1, outputPower));
+
+        // Apply power (reverse one side)
+        setDirectPower(outputPower);
+    }
+
+    public double getTargetVelo() {
+        return targetVelocity;
     }
 }
