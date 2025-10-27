@@ -74,7 +74,15 @@ public class Spindexer implements Subsystem{
     }
 
     public void setPosition(SpindexerPositions position) {
-        curr_pos = position.pos;
+        double currentPos = getEncoderPosition();
+        double targetPos = position.pos;
+        double diff = targetPos - currentPos;
+
+        // Normalize to shortest path within \[-180, 180\]
+        while (diff > 180) diff -= 360;
+        while (diff < -180) diff += 360;
+
+        curr_pos = currentPos + diff;
     }
 
     public void shootPos(int index) {
@@ -127,7 +135,7 @@ public class Spindexer implements Subsystem{
     @Override
     public void update() {
         error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
-        double power = feedforward.calculate(spindexerController.calculate(error, 0));
+        double power = feedforward.calculate(spindexerController.calculate(getEncoderPosition(), curr_pos));
         if (Math.abs(error)<1){
             power=0;
         }

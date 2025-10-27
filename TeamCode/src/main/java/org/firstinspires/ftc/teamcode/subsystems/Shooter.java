@@ -60,8 +60,6 @@ public class Shooter implements Subsystem {
     }
 
     public void setDirectPower(double power) {
-        currentVelocity = Math.abs(shooterMotor2.getVelocity());
-        smoothedVelocity = ALPHA * currentVelocity + (1 - ALPHA) * smoothedVelocity;
         shooterMotor1.setPower(-power);
         shooterMotor2.setPower(power);
     }
