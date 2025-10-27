@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import solverslib.controller.PIDFController;
 import solverslib.controller.feedforwards.SimpleMotorFeedforward;
 
+@Configurable
 public class Shooter implements Subsystem {
 
     private DcMotorEx shooterMotor1, shooterMotor2;
@@ -21,8 +23,8 @@ public class Shooter implements Subsystem {
     public static double kI = 0.0001;
     public static double kD = 0.0002;
 
-    public static double kS = 0.2; // Static feedforward
-    public static double kV = 1.0/2800; // Velocity feedforward
+    public static double kS = 0.08; // Static feedforward
+    public static double kV = 1.0/2900; // Velocity feedforward
 
     public static boolean enablePIDF = true;
 
@@ -58,6 +60,8 @@ public class Shooter implements Subsystem {
     }
 
     public void setDirectPower(double power) {
+        currentVelocity = Math.abs(shooterMotor2.getVelocity());
+        smoothedVelocity = ALPHA * currentVelocity + (1 - ALPHA) * smoothedVelocity;
         shooterMotor1.setPower(-power);
         shooterMotor2.setPower(power);
     }
