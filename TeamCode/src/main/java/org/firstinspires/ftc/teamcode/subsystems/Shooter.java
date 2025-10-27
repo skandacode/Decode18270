@@ -47,7 +47,7 @@ public class Shooter implements Subsystem {
     }
 
     public double getCurrentVelocity() {
-        return currentVelocity;
+        return smoothedVelocity;
     }
 
     public void setDirectPower(double power) {
