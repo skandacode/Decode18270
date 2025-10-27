@@ -27,12 +27,12 @@ public class Spindexer implements Subsystem{
     public static double errorTolerance = 10;
 
 
-    public static double kP = 0.008;
+    public static double kP = 0.007;
     public static double kI = 0.0;
-    public static double kD = 0.0;
+    public static double kD = 0;
     public static double kF = 0.0;
 
-    public static double kS = 0.09;
+    public static double kS = 0.04;
     public static double kV = 1;
 
     private PIDFController spindexerController;

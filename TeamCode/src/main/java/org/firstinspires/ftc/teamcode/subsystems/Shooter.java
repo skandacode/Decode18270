@@ -42,6 +42,14 @@ public class Shooter implements Subsystem {
         //turret1.setPosition(position);
         //turret2.setPosition(position);
     }
+    public void setDirectMotorPower(double power) {
+        shooterMotor1.set(power);
+        shooterMotor2.set(-power);
+
+        shooterMotor1.update();
+        shooterMotor2.update();
+        currentVelo = Math.abs(shooterMotor2.getCorrectedVelocity());
+    }
 
     public double getCurrentVelo() {
         return currentVelo;

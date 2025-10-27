@@ -255,7 +255,7 @@ public class Teleop extends LinearOpMode {
             }else{
                 targetVelo=1460;
             }
-
+            //shooter.setDirectMotorPower(-0.5);
             if (gamepadEx.getTrigger(turnOnAutoFireButton)>0.5){
                 autofire = true;
             } else if (gamepadEx.getTrigger(turnOffAutoFireButton)>0.5){
