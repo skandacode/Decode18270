@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import solverslib.controller.PIDFController;
+import solverslib.controller.feedforwards.SimpleMotorFeedforward;
 
 public class Shooter implements Subsystem {
 
@@ -11,21 +12,26 @@ public class Shooter implements Subsystem {
     private Servo kicker1, kicker2;
 
     private PIDFController pidf;
+    private SimpleMotorFeedforward feedforward;
     private double targetVelocity = 0.0;
     private double currentVelocity = 0.0;
 
     // --- PIDF coefficients ---
-    private double kP = 0.0009;
-    private double kI = 0.0001;
-    private double kD = 0.0002;
-    private double kF = 0.00015;
+    public static double kP = 0.0009;
+    public static double kI = 0.0001;
+    public static double kD = 0.0002;
+
+    public static double kS = 0.2; // Static feedforward
+    public static double kV = 1.0/2800; // Velocity feedforward
+
+    public static boolean enablePIDF = true;
 
     // --- Kicker positions ---
-    private static final double KICKER_UP = 0.25;
-    private static final double KICKER_DOWN = 0.42;
+    public static double KICKER_UP = 0.25;
+    public static double KICKER_DOWN = 0.42;
 
     // --- Low-pass filter coefficient (for smoothing) ---
-    private static final double ALPHA = 0.3;
+    public static double ALPHA = 0.3;
     private double smoothedVelocity = 0.0;
 
     public Shooter(HardwareMap hardwareMap) {
@@ -38,7 +44,8 @@ public class Shooter implements Subsystem {
         shooterMotor1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        pidf = new PIDFController(kP, kI, kD, kF);
+        pidf = new PIDFController(kP, kI, kD, 0);
+        feedforward = new SimpleMotorFeedforward(kS, kV);
     }
 
     public void setTargetVelocity(double target) {
@@ -67,7 +74,7 @@ public class Shooter implements Subsystem {
 
     @Override
     public void update() {
-        // Measure velocity (assuming shooterMotor2 has encoder plugged in)
+        // Measure velocity
         currentVelocity = Math.abs(shooterMotor2.getVelocity());
         smoothedVelocity = ALPHA * currentVelocity + (1 - ALPHA) * smoothedVelocity;
 
@@ -77,13 +84,16 @@ public class Shooter implements Subsystem {
             outputPower = 0;
             smoothedVelocity = 0;
         } else {
-            outputPower = pidf.calculate(smoothedVelocity, targetVelocity);
+            outputPower = feedforward.calculate(targetVelocity);
+            if (enablePIDF){
+                outputPower += pidf.calculate(smoothedVelocity, targetVelocity);
+            }
         }
 
         // Clamp to [-1, 1] range for safety
         outputPower = Math.max(-1, Math.min(1, outputPower));
 
-        // Apply power (reverse one side)
+        // Apply power
         setDirectPower(outputPower);
     }
 
