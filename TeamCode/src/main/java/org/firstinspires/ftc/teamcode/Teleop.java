@@ -32,7 +32,7 @@ public class Teleop extends LinearOpMode {
 
     double targetVelo = 1350;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.34;
+    public static double timeforspin = 0.41;
     public static double timeForIntake = 0.23;
     enum RobotState {
         Intake1, wait1,
@@ -85,138 +85,138 @@ public class Teleop extends LinearOpMode {
 
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.intakePos(0);
                 })
-                .transition(()->intake.isIntaked())
+                .transition(() -> intake.isIntaked())
 
                 .state(RobotState.wait1)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(1);
                 })
                 .transitionTimed(timeForIntake)
 
                 .state(RobotState.Intake2)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.intakePos(1);
                 })
-                .transition(()->intake.isIntaked())
+                .transition(() -> intake.isIntaked())
 
                 .state(RobotState.wait2)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(2);
                 })
                 .transitionTimed(timeForIntake)
 
                 .state(RobotState.Intake3)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.intakePos(2);
                 })
-                .transition(()->intake.isIntaked())
+                .transition(() -> intake.isIntaked())
 
                 .state(RobotState.wait3)
-                .onEnter(()->{
+                .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.shootPos(0);
                 })
-                .transition(()->spindexer.atTarget())
+                .transition(() -> spindexer.atTarget())
+                .transitionTimed(0.3)
 
                 .state(RobotState.WaitForShoot)
-                .transition(()->gamepadEx.getButton(shooterButtonAll), ()->autofire=true)
-                .transition(()->gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, ()->{
-                    autofire=false;
+                .transition(() -> gamepadEx.getButton(shooterButtonAll), () -> autofire = true)
+                .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> {
+                    autofire = false;
                     currShoot = Artifact.GREEN;
                 })
-                .transition(()->gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, ()->{
-                    autofire=false;
-                    currShoot=Artifact.PURPLE;
+                .transition(() -> gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, () -> {
+                    autofire = false;
+                    currShoot = Artifact.PURPLE;
                 })
 
 
                 .state(RobotState.PreShoot1)
-                .onEnter(()->{
+                .onEnter(() -> {
                     if (autofire) {
                         spindexer.shootPos(shootorder[0]);
-                    }else{
+                    } else {
                         spindexer.shootPos(spindexer.getIndex(currShoot));
-                        currShoot=Artifact.NONE;
+                        currShoot = Artifact.NONE;
                     }
                 })
-                .transition(()->spindexer.atTarget())
+                .transition(() -> spindexer.atTarget())
 
                 .state(RobotState.Shoot1)
-                .onEnter(()->{
+                .onEnter(() -> {
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker)
 
-                .onExit(()->{
+                .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                 })
 
                 .state(RobotState.waitforrelease1)
-                .transition(()->!gamepadEx.getButton(shooterButtonGreen) && !gamepadEx.getButton(shooterButtonPurple))
-                .transition(()->autofire)
+                .transition(() -> !gamepadEx.getButton(shooterButtonGreen) && !gamepadEx.getButton(shooterButtonPurple))
+                .transition(() -> autofire)
 
                 .state(RobotState.waitforpress2)
-                .transition(()->autofire)
-                .transition(()->gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, ()->currShoot=Artifact.GREEN)
-                .transition(()->gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, ()->currShoot=Artifact.PURPLE)
+                .transition(() -> autofire)
+                .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
+                .transition(() -> gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
 
 
                 .state(RobotState.PreShoot2)
-                .onEnter(()->{
+                .onEnter(() -> {
                     if (autofire) {
                         spindexer.shootPos(shootorder[1]);
-                    }else{
+                    } else {
                         spindexer.shootPos(spindexer.getIndex(currShoot));
-                        currShoot=Artifact.NONE;
+                        currShoot = Artifact.NONE;
                     }
                 })
                 .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot2)
-                .onEnter(()->{
+                .onEnter(() -> {
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker)
-                .onExit(()->{
+                .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                 })
 
 
                 .state(RobotState.waitforrelease2)
-                .transition(()->!gamepadEx.getButton(shooterButtonGreen) && !gamepadEx.getButton(shooterButtonPurple))
-                .transition(()->autofire)
+                .transition(() -> !gamepadEx.getButton(shooterButtonGreen) && !gamepadEx.getButton(shooterButtonPurple))
+                .transition(() -> autofire)
 
                 .state(RobotState.waitforpress3)
-                .transition(()->autofire)
-                .transition(()->gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, ()->currShoot=Artifact.GREEN)
-                .transition(()->gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, ()->currShoot=Artifact.PURPLE)
-
+                .transition(() -> autofire)
+                .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
+                .transition(() -> gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
 
 
                 .state(RobotState.PreShoot3)
-                .onEnter(()->{
+                .onEnter(() -> {
                     if (autofire) {
                         spindexer.shootPos(shootorder[2]);
-                    }else{
+                    } else {
                         spindexer.shootPos(spindexer.getIndex(currShoot));
-                        currShoot=Artifact.NONE;
+                        currShoot = Artifact.NONE;
                     }
                 })
                 .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot3)
-                .onEnter(()->{
+                .onEnter(() -> {
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker, RobotState.Intake1)
-                .onExit(()->{
+                .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                     spindexer.intakePos(0);
@@ -228,42 +228,51 @@ public class Teleop extends LinearOpMode {
         waitForStart();
         stateMachine.start();
         shooter.kickerDown();
+        long lastLoopTime = System.nanoTime();
+
         while (opModeIsActive()) {
-            // Drivetrain control
+            long currentTime = System.nanoTime();
+            double loopTime = (double) (currentTime - lastLoopTime) / 1000000;
+            lastLoopTime = currentTime;
+
             double forward = gamepadEx.getLeftY();
             double strafe = gamepadEx.getLeftX();
             double turn = gamepadEx.getRightX();
-            if (gamepadEx.getButton(slowModeButton)){
+            if (gamepadEx.getButton(slowModeButton)) {
                 forward *= 0.3;
                 strafe *= 0.3;
                 turn *= 0.3;
             }
             drivetrain.driveRobotCentric(forward, strafe, turn);
-            // Intake control
+
             if (gamepadEx.getButton(intakeStopButton)) {
-                intake.setPower(0); // Stop intake
+                intake.setPower(0);
             } else {
                 if (gamepadEx.getButton(intakeEjectButton)) {
-                    intake.setPower(-1); // Eject intake
-                }else{
+                    intake.setPower(-1);
+                } else {
                     intake.setPower(1);
                 }
             }
-            if (gamepadEx.getButton(farShootButton)){
-                targetVelo=2400;
-            }else{
-                targetVelo=1535;
+
+            if (gamepadEx.getButton(farShootButton)) {
+                targetVelo = 2400;
+            } else {
+                targetVelo = 1535;
             }
-            //shooter.setDirectMotorPower(-0.5);
-            if (gamepadEx.getTrigger(turnOnAutoFireButton)>0.5){
+
+            if (gamepadEx.getTrigger(turnOnAutoFireButton) > 0.5) {
                 autofire = true;
-            } else if (gamepadEx.getTrigger(turnOffAutoFireButton)>0.5){
+            } else if (gamepadEx.getTrigger(turnOffAutoFireButton) > 0.5) {
                 autofire = false;
             }
 
+            telemetry.addData("Loop time", loopTime);
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());
             telemetry.addData("Shooter Velo", shooter.getCurrentVelocity());
+            telemetry.addData("Spindexer Pos", spindexer.getCurr_pos());
+            telemetry.addData("Encoder Pos", spindexer.getEncoderPosition());
 
             shooter.setTargetVelocity(targetVelo);
             gamepadEx.readButtons();

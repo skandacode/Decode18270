@@ -27,9 +27,9 @@ public class Spindexer implements Subsystem{
     public static double errorTolerance = 10;
 
 
-    public static double kP = 0.007;
+    public static double kP = -0.007;
     public static double kI = 0.0;
-    public static double kD = 0.0001;
+    public static double kD = -0.00013;
     public static double kF = 0.0;
 
     public static double kS = 0.04;
@@ -42,8 +42,8 @@ public class Spindexer implements Subsystem{
     public enum SpindexerPositions{
         INTAKE1(30),
         INTAKE2(145),
-        INTAKE3(270),
-        SHOOT1(-146),
+        INTAKE3(-90),
+        SHOOT1(-150),
         SHOOT2(-25),
         SHOOT3(93);
 
@@ -74,15 +74,20 @@ public class Spindexer implements Subsystem{
     }
 
     public void setPosition(SpindexerPositions position) {
-        double currentPos = getEncoderPosition();
         double targetPos = position.pos;
-        double diff = targetPos - currentPos;
+        double currentPos = getEncoderPosition();
 
-        // Normalize to shortest path within \[-180, 180\]
-        while (diff > 180) diff -= 360;
-        while (diff < -180) diff += 360;
+        // unwrap angles so that the motor always takes the shortest path
+        while (Math.abs(targetPos - currentPos) > 180) {
+            if (targetPos < currentPos) {
+                targetPos += 360;
+            } else {
+                targetPos -= 360;
+            }
+        }
 
-        curr_pos = currentPos + diff;
+        curr_pos = targetPos;
+        System.out.println("curr_pos "+curr_pos+"   "+currentPos);
     }
 
     public void shootPos(int index) {
@@ -134,6 +139,15 @@ public class Spindexer implements Subsystem{
 
     @Override
     public void update() {
+        encoderPos = getEncoderDegrees();
+        while (Math.abs(curr_pos - encoderPos) > 180) {
+            if (curr_pos < encoderPos) {
+                curr_pos += 360;
+            } else {
+                curr_pos -= 360;
+            }
+        }
+
         error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
         double power = feedforward.calculate(spindexerController.calculate(getEncoderPosition(), curr_pos));
         if (Math.abs(error)<1){
@@ -142,12 +156,14 @@ public class Spindexer implements Subsystem{
         System.out.println(error+"     "+power);
         spindexerMotor.set(-power);
         spindexerMotor.update();
-        encoderPos = getEncoderDegrees();
     }
     private double getEncoderDegrees(){
         return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage())/3.227*360 + ABS_OFFSET);
     }
     private double getEncoderVoltage(){
         return (spindexerEncoder.getVoltage());
+    }
+    public double getCurr_pos(){
+        return curr_pos;
     }
 }

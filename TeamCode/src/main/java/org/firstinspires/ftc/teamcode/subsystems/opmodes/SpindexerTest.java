@@ -32,6 +32,8 @@ public class SpindexerTest extends LinearOpMode {
             spindexer.setPosition(currPos);
             telemetry.addData("Artifact Positions", java.util.Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("Spindexer Position", spindexer.getEncoderPosition());
+            telemetry.addData("Spindexer Target Position", spindexer.getCurr_pos());
+
             if (spindexer.atTarget()){
                 telemetry.addData("At Target", 180);
             }else{
