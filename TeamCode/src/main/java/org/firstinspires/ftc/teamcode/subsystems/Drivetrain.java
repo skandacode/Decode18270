@@ -15,14 +15,13 @@ public class Drivetrain implements Subsystem{
     private double forwardPower = 0.0;
     private double strafePower = 0.0;
     private double turnPower = 0.0;
-
     public Drivetrain(HardwareMap hardwareMap) {
         Motor frontLeft = new Motor(hardwareMap, "frontleft");
         Motor frontRight = new Motor(hardwareMap, "frontright");
         Motor backLeft = new Motor(hardwareMap, "backleft");
         Motor backRight = new Motor(hardwareMap, "backright");
-        frontLeft.setInverted(true);
-        backLeft.setInverted(true);
+        frontLeft.setInverted(false);
+        backLeft.setInverted(false);
         frontRight.setInverted(false);
         backRight.setInverted(false);
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);

@@ -14,10 +14,9 @@ import solverslib.hardware.motors.Motor;
 import solverslib.util.MathUtils;
 
 @Configurable
-public class Spindexer implements Subsystem{
+public class Spindexer implements Subsystem {
     private Motor spindexerMotor;
     private AnalogInput spindexerEncoder;
-
     private Artifact[] artifactPositions;
     private int currentIndex = 0;
     private double encoderPos = 0;
@@ -25,7 +24,6 @@ public class Spindexer implements Subsystem{
 
     public static double ABS_OFFSET = 100;
     public static double errorTolerance = 10;
-
 
     public static double kP = -0.007;
     public static double kI = 0.0;
@@ -38,8 +36,9 @@ public class Spindexer implements Subsystem{
     private PIDFController spindexerController;
     private SimpleMotorFeedforward feedforward;
 
+    private Double manualPower = null;
 
-    public enum SpindexerPositions{
+    public enum SpindexerPositions {
         INTAKE1(30),
         INTAKE2(145),
         INTAKE3(-90),
@@ -56,7 +55,6 @@ public class Spindexer implements Subsystem{
 
     private double curr_pos;
 
-
     public Spindexer(HardwareMap hardwareMap, Artifact[] startingPositions) {
         spindexerController = new PIDFController(kP, kI, kD, kF);
         feedforward = new SimpleMotorFeedforward(kS, kV, 0);
@@ -65,6 +63,7 @@ public class Spindexer implements Subsystem{
         artifactPositions = startingPositions;
         curr_pos = SpindexerPositions.INTAKE1.pos;
     }
+
     public Spindexer(HardwareMap hardwareMap) {
         this(hardwareMap, new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE});
     }
@@ -76,8 +75,6 @@ public class Spindexer implements Subsystem{
     public void setPosition(SpindexerPositions position) {
         double targetPos = position.pos;
         double currentPos = getEncoderPosition();
-
-        // unwrap angles so that the motor always takes the shortest path
         while (Math.abs(targetPos - currentPos) > 180) {
             if (targetPos < currentPos) {
                 targetPos += 360;
@@ -85,9 +82,7 @@ public class Spindexer implements Subsystem{
                 targetPos -= 360;
             }
         }
-
         curr_pos = targetPos;
-        System.out.println("curr_pos "+curr_pos+"   "+currentPos);
     }
 
     public void shootPos(int index) {
@@ -101,7 +96,8 @@ public class Spindexer implements Subsystem{
             setPosition(SpindexerPositions.SHOOT3);
         }
     }
-    public void afterShoot(){
+
+    public void afterShoot() {
         artifactPositions[currentIndex] = Artifact.NONE;
     }
 
@@ -116,19 +112,20 @@ public class Spindexer implements Subsystem{
             setPosition(SpindexerPositions.INTAKE3);
         }
     }
+
     public void afterIntake(Artifact artifact) {
         artifactPositions[currentIndex] = artifact;
     }
 
-    public boolean atTarget(){
+    public boolean atTarget() {
         return Math.abs(error) < errorTolerance;
     }
 
-    public double getEncoderPosition(){
+    public double getEncoderPosition() {
         return encoderPos;
     }
 
-    public int getIndex(Artifact artifact){
+    public int getIndex(Artifact artifact) {
         for (int index = 0; index < artifactPositions.length; index++) {
             if (artifactPositions[index] == artifact) {
                 return index;
@@ -137,8 +134,24 @@ public class Spindexer implements Subsystem{
         return -1;
     }
 
+    public void setRawPower(double power) {
+        if (power == 0) {
+            manualPower = null;
+        } else {
+            manualPower = power;
+            spindexerMotor.set(power);
+            spindexerMotor.update();
+        }
+    }
+
     @Override
     public void update() {
+        if (manualPower != null) {
+            spindexerMotor.set(manualPower);
+            spindexerMotor.update();
+            return;
+        }
+
         encoderPos = getEncoderDegrees();
         while (Math.abs(curr_pos - encoderPos) > 180) {
             if (curr_pos < encoderPos) {
@@ -148,22 +161,24 @@ public class Spindexer implements Subsystem{
             }
         }
 
-        error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES)-360;
+        error = MathUtils.normalizeAngle(curr_pos - getEncoderPosition(), false, AngleUnit.DEGREES) - 360;
         double power = feedforward.calculate(spindexerController.calculate(getEncoderPosition(), curr_pos));
-        if (Math.abs(error)<1){
-            power=0;
+        if (Math.abs(error) < 1) {
+            power = 0;
         }
-        System.out.println(error+"     "+power);
         spindexerMotor.set(-power);
         spindexerMotor.update();
     }
-    private double getEncoderDegrees(){
-        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage())/3.227*360 + ABS_OFFSET);
+
+    private double getEncoderDegrees() {
+        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()) / 3.227 * 360 + ABS_OFFSET);
     }
-    private double getEncoderVoltage(){
-        return (spindexerEncoder.getVoltage());
+
+    private double getEncoderVoltage() {
+        return spindexerEncoder.getVoltage();
     }
-    public double getCurr_pos(){
+
+    public double getCurr_pos() {
         return curr_pos;
     }
 }

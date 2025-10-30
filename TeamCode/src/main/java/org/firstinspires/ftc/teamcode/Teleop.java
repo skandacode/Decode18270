@@ -63,6 +63,7 @@ public class Teleop extends LinearOpMode {
 
         GamepadEx gamepadEx = new GamepadEx(gamepad1);
 
+        GamepadKeys.Button turnOnAutoFireButton = GamepadKeys.Button.DPAD_DOWN;
 
         GamepadKeys.Button shooterButtonAll = GamepadKeys.Button.B;
         GamepadKeys.Button shooterButtonPurple = GamepadKeys.Button.Y;
@@ -73,8 +74,7 @@ public class Teleop extends LinearOpMode {
         GamepadKeys.Button intakeEjectButton = GamepadKeys.Button.OPTIONS;
 
         GamepadKeys.Button farShootButton = GamepadKeys.Button.LEFT_BUMPER;
-
-        GamepadKeys.Trigger turnOnAutoFireButton = GamepadKeys.Trigger.LEFT_TRIGGER;
+        GamepadKeys.Trigger spindexerDebug = GamepadKeys.Trigger.LEFT_TRIGGER;
         GamepadKeys.Trigger turnOffAutoFireButton = GamepadKeys.Trigger.RIGHT_TRIGGER;
 
 
@@ -258,10 +258,15 @@ public class Teleop extends LinearOpMode {
             if (gamepadEx.getButton(farShootButton)) {
                 targetVelo = 2400;
             } else {
-                targetVelo = 1535;
+                targetVelo = 2200;
+            }
+            if (gamepadEx.getTrigger(spindexerDebug)>0.5) {
+                spindexer.setRawPower(-0.2);
+            } else {
+                spindexer.setRawPower(0);
             }
 
-            if (gamepadEx.getTrigger(turnOnAutoFireButton) > 0.5) {
+            if (gamepadEx.getButton(turnOnAutoFireButton)) {
                 autofire = true;
             } else if (gamepadEx.getTrigger(turnOffAutoFireButton) > 0.5) {
                 autofire = false;
