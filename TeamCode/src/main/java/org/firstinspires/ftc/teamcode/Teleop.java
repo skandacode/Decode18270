@@ -256,9 +256,9 @@ public class Teleop extends LinearOpMode {
             }
 
             if (gamepadEx.getButton(farShootButton)) {
-                targetVelo = 2400;
-            } else {
                 targetVelo = 2200;
+            } else {
+                targetVelo = 2100;
             }
             if (gamepadEx.getTrigger(spindexerDebug)>0.5) {
                 spindexer.setRawPower(-0.2);

@@ -45,7 +45,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
     Spindexer spindexer;
     private boolean autofire = true;
     private StateMachine stateMachine;
-    public static int pattern = 1;
+    public int pattern = 1;
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.7;
     public static double timeForIntake = 0.23;
@@ -65,13 +65,13 @@ public class BlueAutoFarIndex extends LinearOpMode {
 
 
     public enum AutoStates {
-        MOVETOSHOOT1, wait1,SHOOT11,SHOOT11done, SHOOT12, SHOOT12done,SHOOT13, SHOOT13done,
+        MOVETOSHOOT1, wait1, SHOOT1,
         MOVETOINTAKE1, INTAKE1,
-        MOVETOSHOOT2, wait2, SHOOT21,SHOOT21done, SHOOT22, SHOOT22done,SHOOT23, SHOOT23done,
+        MOVETOSHOOT2, wait2, SHOOT2,
         MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
-        MOVETOSHOOT3, wait3,SHOOT31,SHOOT31done, SHOOT32, SHOOT32done,SHOOT33, SHOOT33done,
+        MOVETOSHOOT3, wait3,SHOOT3,
         MOVETOINTAKE3, INTAKE3,
-        MOVETOSHOOT4, wait4,SHOOT41,SHOOT41done, SHOOT42, SHOOT42done, SHOOT43, SHOOT43done,
+        MOVETOSHOOT4, wait4,SHOOT4,
         LEAVE
     }
     enum RobotState {
@@ -242,8 +242,6 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 })
 
 
-
-
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
                     if (autofire) {
@@ -254,8 +252,6 @@ public class BlueAutoFarIndex extends LinearOpMode {
                     }
                 })
                 .transition(() -> spindexer.atTarget())
-
-
                 .state(RobotState.Shoot1)
                 .onEnter(() -> {
                     shooter.kickerUp();
@@ -318,8 +314,6 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .transition(() -> shooterButtonPurple && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
 
 
-
-
                 .state(RobotState.PreShoot3)
                 .onEnter(() -> {
                     if (autofire) {
@@ -342,10 +336,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                     spindexer.afterShoot();
                     spindexer.intakePos(0);
                 })
-
-
                 .build();
-
 
 
 
@@ -362,49 +353,20 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .transitionTimed(1.3)
                 .state(AutoStates.wait1)
                 .onEnter(()->{
+                    if (pattern==1){
+                        shootorder = new int[]{0, 1, 2};
+                    }else if (pattern==2){
+                        shootorder = new int[]{2, 0, 1};
+                    }else{
+                        shootorder = new int[]{1, 2, 0};
+                    }
                 })
                 .transitionTimed(0.5)
-                .state(AutoStates.SHOOT11)
+                .state(AutoStates.SHOOT1)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
+                    shooterButtonAll=true;
                 })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT11done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT12)
-                .onEnter(()->{
-                    if (pattern==2){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT12done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT13)
-                .onEnter(()->{
-                    if (pattern==3){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT13done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-
-
+                .transitionTimed(3)
                 .state(AutoStates.MOVETOINTAKE1)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -426,49 +388,20 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .transitionTimed(1.3)
                 .state(AutoStates.wait2)
                 .onEnter(()->{
+                    if (pattern==1){
+                        shootorder = new int[]{2, 0, 1};
+                    }else if (pattern==2){
+                        shootorder = new int[]{1, 2, 0};
+                    }else{
+                        shootorder = new int[]{0, 1, 2};
+                    }
                 })
                 .transitionTimed(0.5)
-                .state(AutoStates.SHOOT21)
+                .state(AutoStates.SHOOT2)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
+                    shooterButtonAll=true;
                 })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT21done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT22)
-                .onEnter(()->{
-                    if (pattern==2){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT22done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT23)
-                .onEnter(()->{
-                    if (pattern==3){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT23done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-
-
+                .transitionTimed(3)
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -496,49 +429,20 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .transitionTimed(2)
                 .state(AutoStates.wait3)
                 .onEnter(()->{
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT31)
-                .onEnter(()->{
                     if (pattern==1){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT31done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
+                        shootorder = new int[]{1, 2, 0};
+                    }else if (pattern==2){
+                        shootorder = new int[]{0, 1, 2};
+                    }else{
+                        shootorder = new int[]{2, 0, 1};
+                    }
                 })
                 .transitionTimed(0.3)
-                .state(AutoStates.SHOOT32)
+                .state(AutoStates.SHOOT3)
                 .onEnter(()->{
-                    if (pattern==2){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
+                    shooterButtonAll=true;
                 })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT32done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT33)
-                .onEnter(()->{
-                    if (pattern==3){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT33done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-
-
+                .transitionTimed(3)
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -560,49 +464,20 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .transitionTimed(3)
                 .state(AutoStates.wait4)
                 .onEnter(()->{
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT41)
-                .onEnter(()->{
                     if (pattern==1){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT41done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
+                        shootorder = new int[]{0, 1, 2};
+                    }else if (pattern==2){
+                        shootorder = new int[]{2, 0, 1};
+                    }else{
+                        shootorder = new int[]{1, 2, 0};
+                    }
                 })
                 .transitionTimed(0.3)
-                .state(AutoStates.SHOOT42)
+                .state(AutoStates.SHOOT4)
                 .onEnter(()->{
-                    if (pattern==2){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
+                    shooterButtonAll=true;
                 })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT42done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.SHOOT43)
-                .onEnter(()->{
-                    if (pattern==3){
-                        shooterButtonGreen=true;
-                    }else{shooterButtonPurple=true;}
-                })
-                .transitionTimed(0.2)
-                .state(AutoStates.SHOOT43done)
-                .onEnter(()->{
-                    shooterButtonGreen=false;
-                    shooterButtonPurple=false;
-                })
-                .transitionTimed(0.3)
-
-
+                .transitionTimed(3)
                 .state(AutoStates.LEAVE)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -615,23 +490,24 @@ public class BlueAutoFarIndex extends LinearOpMode {
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             follower.update();
+            LLResult result = limelight.getLatestResult();
+            if (result.isValid()) {
+                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                    panelsTelemetry.debug("Fiducial", "ID: %d" , fr.getFiducialId());
+                    if (fr.getFiducialId()>20){
+                        pattern=fr.getFiducialId()-20;
+                    }
+                }
+            } else {
+
+                panelsTelemetry.debug("Limelight", "No data available");
+            }
+            panelsTelemetry.debug("Pattern", pattern);
             panelsTelemetry.debug("Init Pose: " + follower.getPose());
             panelsTelemetry.update(telemetry);
         }
-        LLResult result = limelight.getLatestResult();
-        if (result.isValid()) {
-            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-            for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                telemetry.addData("Fiducial", "ID: %d" , fr.getFiducialId());
-                if (fr.getFiducialId()>20){
-                    pattern=fr.getFiducialId()-20;
-                }
-            }
-        } else {
 
-            telemetry.addData("Limelight", "No data available");
-        }
-        telemetry.addData("Pattern", pattern);
         telemetry.update();
         waitForStart();
         stateMachine.start();
@@ -641,16 +517,12 @@ public class BlueAutoFarIndex extends LinearOpMode {
         shooter.setTargetVelocity(2200);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
-
-
             stateMachine.update();
             autoMachine.update();
             follower.update();
             intake.update();
             shooter.update();
             spindexer.update();
-
-
             panelsTelemetry.debug("State: " + stateMachine.getState());
             panelsTelemetry.debug("State auto: " + autoMachine.getState());
             panelsTelemetry.debug("Pose: " + follower.getPose());
