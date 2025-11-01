@@ -1,26 +1,35 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.sfdev.assembly.state.State;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
+
+
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+
+
 import java.util.List;
-@Autonomous(name = "BlueAutoFar", group = "Auto")
-public class BlueAutoFar extends LinearOpMode {
+
+
+@Autonomous(name = "BlueAutoFarIndex", group = "Auto")
+public class BlueAutoFarIndex extends LinearOpMode {
+
 
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -29,16 +38,18 @@ public class BlueAutoFar extends LinearOpMode {
     public boolean shooterButtonGreen = false;
     public boolean shooterButtonAll = false;
     public boolean shooterButtonPurple = false;
+    Limelight3A limelight;
     Drivetrain drivetrain;
     Intake intake;
     Shooter shooter;
     Spindexer spindexer;
     private boolean autofire = true;
     private StateMachine stateMachine;
-
+    public static int pattern = 1;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.5;
+    public static double timeforspin = 0.7;
     public static double timeForIntake = 0.23;
+
 
     private final Pose startPose = new Pose(43, 0, Math.toRadians(180));
     private final Pose shootPose = new Pose(130, -2.6, Math.toRadians(-130));
@@ -51,14 +62,16 @@ public class BlueAutoFar extends LinearOpMode {
     private final Pose leave = new Pose(140, -2.6, Math.toRadians(-135));
 
 
+
+
     public enum AutoStates {
-        MOVETOSHOOT1, wait1, SHOOT1,
+        MOVETOSHOOT1, wait1,SHOOT11,SHOOT11done, SHOOT12, SHOOT12done,SHOOT13, SHOOT13done,
         MOVETOINTAKE1, INTAKE1,
-        MOVETOSHOOT2, wait2, SHOOT2,
+        MOVETOSHOOT2, wait2, SHOOT21,SHOOT21done, SHOOT22, SHOOT22done,SHOOT23, SHOOT23done,
         MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
-        MOVETOSHOOT3, wait3,SHOOT3,
+        MOVETOSHOOT3, wait3,SHOOT31,SHOOT31done, SHOOT32, SHOOT32done,SHOOT33, SHOOT33done,
         MOVETOINTAKE3, INTAKE3,
-        MOVETOSHOOT4, wait4,SHOOT4,
+        MOVETOSHOOT4, wait4,SHOOT41,SHOOT41done, SHOOT42, SHOOT42done, SHOOT43, SHOOT43done,
         LEAVE
     }
     enum RobotState {
@@ -78,12 +91,16 @@ public class BlueAutoFar extends LinearOpMode {
         Shoot3
     }
 
+
     @Override
     public void runOpMode() throws InterruptedException {
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs)
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
+        limelight.start();
         drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
@@ -94,15 +111,18 @@ public class BlueAutoFar extends LinearOpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
 
+
         PathChain toIntake1 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake1Pose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake1Pose.getHeading())
                 .build();
 
+
         PathChain toIntake2 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake2Pose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake2Pose.getHeading())
                 .build();
+
 
         PathChain toIntake3 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake3Pose))
@@ -113,6 +133,7 @@ public class BlueAutoFar extends LinearOpMode {
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), intake1donePose.getHeading())
                 .build();
 
+
         PathChain toIntake2fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake2Pose, intake2donePose))
                 .setLinearHeadingInterpolation(intake2Pose.getHeading(), intake2donePose.getHeading())
@@ -122,20 +143,24 @@ public class BlueAutoFar extends LinearOpMode {
                 .setLinearHeadingInterpolation(intake2donePose.getHeading(), intake2Pose.getHeading())
                 .build();
 
+
         PathChain toIntake3fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake3Pose, intake3donePose))
                 .setLinearHeadingInterpolation(intake3Pose.getHeading(), intake3donePose.getHeading())
                 .build();
+
 
         PathChain toScore1 = follower.pathBuilder()
                 .addPath(new BezierLine(intake1donePose, shootPose))
                 .setLinearHeadingInterpolation(intake1donePose.getHeading(), shootPose.getHeading())
                 .build();
 
+
         PathChain toScore2 = follower.pathBuilder()
                 .addPath(new BezierLine(intake2donePose, shootPose))
                 .setLinearHeadingInterpolation(intake2donePose.getHeading(), shootPose.getHeading())
                 .build();
+
 
         PathChain toScore3 = follower.pathBuilder()
                 .addPath(new BezierLine(intake3donePose, shootPose))
@@ -146,7 +171,9 @@ public class BlueAutoFar extends LinearOpMode {
                 .setLinearHeadingInterpolation(shootPose.getHeading(), leave.getHeading())
                 .build();
 
+
         follower.setStartingPose(startPose);
+
 
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
@@ -155,6 +182,7 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transition(() -> intake.isIntaked())
 
+
                 .state(RobotState.wait1)
                 .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
@@ -162,11 +190,13 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transitionTimed(timeForIntake)
 
+
                 .state(RobotState.Intake2)
                 .onEnter(() -> {
                     spindexer.intakePos(1);
                 })
                 .transition(() -> intake.isIntaked())
+
 
                 .state(Teleop.RobotState.wait2)
                 .onEnter(() -> {
@@ -175,11 +205,13 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transitionTimed(timeForIntake)
 
+
                 .state(RobotState.Intake3)
                 .onEnter(() -> {
                     spindexer.intakePos(2);
                 })
                 .transition(() -> intake.isIntaked())
+
 
                 .state(RobotState.wait3)
                 .onEnter(() -> {
@@ -193,6 +225,7 @@ public class BlueAutoFar extends LinearOpMode {
                     intake.setPower(-0.4);
                 })
                 .transitionTimed(0.15)
+
 
                 .state(RobotState.WaitForShoot)
                 .onEnter(() -> {
@@ -209,6 +242,8 @@ public class BlueAutoFar extends LinearOpMode {
                 })
 
 
+
+
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
                     if (autofire) {
@@ -220,25 +255,31 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transition(() -> spindexer.atTarget())
 
+
                 .state(RobotState.Shoot1)
                 .onEnter(() -> {
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker)
 
+
                 .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                 })
 
+
                 .state(RobotState.waitforrelease1)
                 .transition(() -> !shooterButtonGreen && !shooterButtonPurple)
                 .transition(() -> autofire)
+
 
                 .state(RobotState.waitforpress2)
                 .transition(() -> autofire)
                 .transition(() -> shooterButtonGreen && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
                 .transition(() -> shooterButtonPurple && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
+
+
 
 
                 .state(RobotState.PreShoot2)
@@ -252,6 +293,7 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transitionTimed(timeforspin)
 
+
                 .state(RobotState.Shoot2)
                 .onEnter(() -> {
                     shooter.kickerUp();
@@ -263,14 +305,19 @@ public class BlueAutoFar extends LinearOpMode {
                 })
 
 
+
+
                 .state(RobotState.waitforrelease2)
                 .transition(() -> !shooterButtonGreen && !shooterButtonPurple)
                 .transition(() -> autofire)
+
 
                 .state(RobotState.waitforpress3)
                 .transition(() -> autofire)
                 .transition(() -> shooterButtonGreen && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
                 .transition(() -> shooterButtonPurple && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
+
+
 
 
                 .state(RobotState.PreShoot3)
@@ -284,6 +331,7 @@ public class BlueAutoFar extends LinearOpMode {
                 })
                 .transitionTimed(timeforspin)
 
+
                 .state(Teleop.RobotState.Shoot3)
                 .onEnter(() -> {
                     shooter.kickerUp();
@@ -295,7 +343,12 @@ public class BlueAutoFar extends LinearOpMode {
                     spindexer.intakePos(0);
                 })
 
+
                 .build();
+
+
+
+
 
 
 
@@ -311,11 +364,47 @@ public class BlueAutoFar extends LinearOpMode {
                 .onEnter(()->{
                 })
                 .transitionTimed(0.5)
-                .state(AutoStates.SHOOT1)
+                .state(AutoStates.SHOOT11)
                 .onEnter(()->{
-                    shooterButtonAll=true;
+                    if (pattern==1){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
                 })
-                .transitionTimed(2)
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT11done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT12)
+                .onEnter(()->{
+                    if (pattern==2){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT12done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT13)
+                .onEnter(()->{
+                    if (pattern==3){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT13done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+
+
                 .state(AutoStates.MOVETOINTAKE1)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -339,11 +428,47 @@ public class BlueAutoFar extends LinearOpMode {
                 .onEnter(()->{
                 })
                 .transitionTimed(0.5)
-                .state(AutoStates.SHOOT2)
+                .state(AutoStates.SHOOT21)
                 .onEnter(()->{
-                    shooterButtonAll=true;
+                    if (pattern==1){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
                 })
-                .transitionTimed(2)
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT21done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT22)
+                .onEnter(()->{
+                    if (pattern==2){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT22done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT23)
+                .onEnter(()->{
+                    if (pattern==3){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT23done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+
+
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -373,11 +498,47 @@ public class BlueAutoFar extends LinearOpMode {
                 .onEnter(()->{
                 })
                 .transitionTimed(0.3)
-                .state(AutoStates.SHOOT3)
+                .state(AutoStates.SHOOT31)
                 .onEnter(()->{
-                    shooterButtonAll=true;
+                    if (pattern==1){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
                 })
-                .transitionTimed(2)
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT31done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT32)
+                .onEnter(()->{
+                    if (pattern==2){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT32done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT33)
+                .onEnter(()->{
+                    if (pattern==3){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT33done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+
+
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     shooterButtonAll=false;
@@ -401,22 +562,55 @@ public class BlueAutoFar extends LinearOpMode {
                 .onEnter(()->{
                 })
                 .transitionTimed(0.3)
-                .state(AutoStates.SHOOT4)
+                .state(AutoStates.SHOOT41)
                 .onEnter(()->{
-                    shooterButtonAll=true;
+                    if (pattern==1){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
                 })
-                .transitionTimed(2)
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT41done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT42)
+                .onEnter(()->{
+                    if (pattern==2){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT42done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT43)
+                .onEnter(()->{
+                    if (pattern==3){
+                        shooterButtonGreen=true;
+                    }else{shooterButtonPurple=true;}
+                })
+                .transitionTimed(0.2)
+                .state(AutoStates.SHOOT43done)
+                .onEnter(()->{
+                    shooterButtonGreen=false;
+                    shooterButtonPurple=false;
+                })
+                .transitionTimed(0.3)
+
+
                 .state(AutoStates.LEAVE)
                 .onEnter(()->{
                     shooterButtonAll=false;
 
+
                     follower.followPath(park, true);
                 })
                 .build();
-
-
-
-
 
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
@@ -424,7 +618,21 @@ public class BlueAutoFar extends LinearOpMode {
             panelsTelemetry.debug("Init Pose: " + follower.getPose());
             panelsTelemetry.update(telemetry);
         }
+        LLResult result = limelight.getLatestResult();
+        if (result.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                telemetry.addData("Fiducial", "ID: %d" , fr.getFiducialId());
+                if (fr.getFiducialId()>20){
+                    pattern=fr.getFiducialId()-20;
+                }
+            }
+        } else {
 
+            telemetry.addData("Limelight", "No data available");
+        }
+        telemetry.addData("Pattern", pattern);
+        telemetry.update();
         waitForStart();
         stateMachine.start();
         stateMachine.setState(RobotState.Intake3);
@@ -434,6 +642,7 @@ public class BlueAutoFar extends LinearOpMode {
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
 
+
             stateMachine.update();
             autoMachine.update();
             follower.update();
@@ -441,12 +650,15 @@ public class BlueAutoFar extends LinearOpMode {
             shooter.update();
             spindexer.update();
 
+
             panelsTelemetry.debug("State: " + stateMachine.getState());
             panelsTelemetry.debug("State auto: " + autoMachine.getState());
             panelsTelemetry.debug("Pose: " + follower.getPose());
             panelsTelemetry.update(telemetry);
 
+
             telemetry.update();
         }
     }
 }
+
