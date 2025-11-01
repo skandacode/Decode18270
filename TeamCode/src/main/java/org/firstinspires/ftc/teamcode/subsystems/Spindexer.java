@@ -116,6 +116,25 @@ public class Spindexer implements Subsystem {
     public void afterIntake(Artifact artifact) {
         artifactPositions[currentIndex] = artifact;
     }
+    public void setArtifactPositions(String[] colors) {
+        Artifact[] newPositions = new Artifact[3];
+        for (int i = 0; i < 3; i++) {
+            switch (colors[i].toUpperCase()) {
+                case "GREEN":
+                    newPositions[i] = Artifact.GREEN;
+                    break;
+                case "PURPLE":
+                    newPositions[i] = Artifact.PURPLE;
+                    break;
+                case "NONE":
+                default:
+                    newPositions[i] = Artifact.NONE;
+                    break;
+            }
+        }
+
+        artifactPositions = newPositions;
+    }
 
     public boolean atTarget() {
         return Math.abs(error) < errorTolerance;

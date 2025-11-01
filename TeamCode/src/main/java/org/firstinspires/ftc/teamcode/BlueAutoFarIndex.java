@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -47,7 +48,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
     private StateMachine stateMachine;
     public int pattern = 1;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.7;
+    public static double timeforspin = 0.5;
     public static double timeForIntake = 0.23;
 
 
@@ -157,8 +158,8 @@ public class BlueAutoFarIndex extends LinearOpMode {
 
 
         PathChain toScore2 = follower.pathBuilder()
-                .addPath(new BezierLine(intake2donePose, shootPose))
-                .setLinearHeadingInterpolation(intake2donePose.getHeading(), shootPose.getHeading())
+                .addPath(new BezierLine(intake2Pose, shootPose))
+                .setLinearHeadingInterpolation(intake2Pose.getHeading(), shootPose.getHeading())
                 .build();
 
 
@@ -232,16 +233,6 @@ public class BlueAutoFarIndex extends LinearOpMode {
                     intake.setPower(1);
                 })
                 .transition(() -> shooterButtonAll, () -> autofire = true)
-                .transition(() -> shooterButtonGreen && spindexer.getIndex(Artifact.GREEN) != -1, () -> {
-                    autofire = false;
-                    currShoot = Artifact.GREEN;
-                })
-                .transition(() -> shooterButtonPurple && spindexer.getIndex(Artifact.PURPLE) != -1, () -> {
-                    autofire = false;
-                    currShoot = Artifact.PURPLE;
-                })
-
-
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
                     if (autofire) {
@@ -355,10 +346,14 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     if (pattern==1){
                         shootorder = new int[]{0, 1, 2};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                     }else if (pattern==2){
                         shootorder = new int[]{2, 0, 1};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
                     }else{
                         shootorder = new int[]{1, 2, 0};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
+
                     }
                 })
                 .transitionTimed(0.5)
@@ -390,10 +385,13 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     if (pattern==1){
                         shootorder = new int[]{2, 0, 1};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
                     }else if (pattern==2){
                         shootorder = new int[]{1, 2, 0};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
                     }else{
                         shootorder = new int[]{0, 1, 2};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                     }
                 })
                 .transitionTimed(0.5)
@@ -431,10 +429,13 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     if (pattern==1){
                         shootorder = new int[]{1, 2, 0};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
                     }else if (pattern==2){
                         shootorder = new int[]{0, 1, 2};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                     }else{
                         shootorder = new int[]{2, 0, 1};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
                     }
                 })
                 .transitionTimed(0.3)
@@ -466,10 +467,14 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     if (pattern==1){
                         shootorder = new int[]{0, 1, 2};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                     }else if (pattern==2){
                         shootorder = new int[]{2, 0, 1};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
                     }else{
                         shootorder = new int[]{1, 2, 0};
+                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
+
                     }
                 })
                 .transitionTimed(0.3)
@@ -511,10 +516,11 @@ public class BlueAutoFarIndex extends LinearOpMode {
         telemetry.update();
         waitForStart();
         stateMachine.start();
-        stateMachine.setState(RobotState.Intake3);
+        stateMachine.setState(RobotState.WaitForShoot);
+        spindexer.setArtifactPositions(new String[] {"GREEN", "PURPLE", "PURPLE"});
         autoMachine.start();
         intake.setPower(1);
-        shooter.setTargetVelocity(2200);
+        shooter.setTargetVelocity(2100);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             stateMachine.update();
@@ -523,6 +529,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
             intake.update();
             shooter.update();
             spindexer.update();
+            panelsTelemetry.debug("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             panelsTelemetry.debug("State: " + stateMachine.getState());
             panelsTelemetry.debug("State auto: " + autoMachine.getState());
             panelsTelemetry.debug("Pose: " + follower.getPose());
