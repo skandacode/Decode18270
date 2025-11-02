@@ -50,7 +50,7 @@ public class BlueAutoFarNoIndex extends LinearOpMode {
     private final Pose leave = new Pose(140, -2.6, Math.toRadians(-135));
 
 
-    public enum AutoStates {
+    private enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
         MOVETOINTAKE1, INTAKE1,
         MOVETOSHOOT2, wait2, SHOOT2,
@@ -60,7 +60,7 @@ public class BlueAutoFarNoIndex extends LinearOpMode {
         MOVETOSHOOT4, wait4,SHOOT4,
         LEAVE
     }
-    enum RobotState {
+    private enum RobotState {
         Intake1, wait1,
         Intake2, wait2,
         Intake3, wait3, reverseIntake,
@@ -167,7 +167,7 @@ public class BlueAutoFarNoIndex extends LinearOpMode {
                 })
                 .transition(() -> intake.isIntaked())
 
-                .state(Teleop.RobotState.wait2)
+                .state(RobotState.wait2)
                 .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(2);
@@ -283,7 +283,7 @@ public class BlueAutoFarNoIndex extends LinearOpMode {
                 })
                 .transitionTimed(timeforspin)
 
-                .state(Teleop.RobotState.Shoot3)
+                .state(RobotState.Shoot3)
                 .onEnter(() -> {
                     shooter.kickerUp();
                 })

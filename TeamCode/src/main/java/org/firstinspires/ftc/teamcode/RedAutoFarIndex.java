@@ -2,37 +2,39 @@ package org.firstinspires.ftc.teamcode;
 
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
-
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
-
 import java.util.Arrays;
 import java.util.List;
 
 
-@Autonomous(name = "BlueAutoFarIndex", group = "Auto")
-public class BlueAutoFarIndex extends LinearOpMode {
+@Autonomous(name = "RedAutoFarIndex", group = "Auto")
+public class RedAutoFarIndex extends LinearOpMode {
+
+
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
+    public static Artifact currShoot = Artifact.NONE;
     public boolean shooterButtonAll = false;
     Limelight3A limelight;
     Drivetrain drivetrain;
@@ -46,15 +48,15 @@ public class BlueAutoFarIndex extends LinearOpMode {
     public static double timeForIntake = 0.23;
 
 
-    private final Pose startPose = new Pose(43, 0, Math.toRadians(180));
-    private final Pose shootPose = new Pose(130, -2.6, Math.toRadians(-130));
-    private final Pose intake1Pose = new Pose(115, -7, Math.toRadians(90));
-    private final Pose intake2Pose = new Pose(93, -7, Math.toRadians(90));
-    private final Pose intake3Pose = new Pose(67,-7, Math.toRadians(90));
-    private final Pose intake1donePose = new Pose(115, 25, Math.toRadians(90));
-    private final Pose intake2donePose = new Pose(93, 32, Math.toRadians(90));
-    private final Pose intake3donePose = new Pose(67, 35, Math.toRadians(90));
-    private final Pose leave = new Pose(140, -2.6, Math.toRadians(-135));
+    private final Pose startPose = new Pose(43, -0, Math.toRadians(-180));
+    private final Pose shootPose = new Pose(130, 2.6, Math.toRadians(130));
+    private final Pose intake1Pose = new Pose(115, 7, Math.toRadians(-90));
+    private final Pose intake2Pose = new Pose(93, 7, Math.toRadians(-90));
+    private final Pose intake3Pose = new Pose(67,7, Math.toRadians(-90));
+    private final Pose intake1donePose = new Pose(115, -30, Math.toRadians(-90));
+    private final Pose intake2donePose = new Pose(93, -36, Math.toRadians(-90));
+    private final Pose intake3donePose = new Pose(67, -36, Math.toRadians(-90));
+    private final Pose leave = new Pose(140, 2.6, Math.toRadians(135));
 
 
 
@@ -447,6 +449,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                     }
                 }
             } else {
+
                 panelsTelemetry.debug("Limelight", "No data available");
             }
             panelsTelemetry.debug("Pattern", pattern);

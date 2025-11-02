@@ -34,7 +34,7 @@ public class Teleop extends LinearOpMode {
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.41;
     public static double timeForIntake = 0.23;
-    enum RobotState {
+    private enum RobotState {
         Intake1, wait1,
         Intake2, wait2,
         Intake3, wait3,
