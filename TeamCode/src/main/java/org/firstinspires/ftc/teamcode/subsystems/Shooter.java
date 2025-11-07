@@ -29,7 +29,7 @@ public class Shooter implements Subsystem {
     public static boolean enablePIDF = true;
 
     // --- Kicker positions ---
-    public static double KICKER_UP = 0.25;
+    public static double KICKER_UP = 0.28;
     public static double KICKER_DOWN = 0.45;
 
     // --- Low-pass filter coefficient (for smoothing) ---

@@ -4,6 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.robot.Robot;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
+import java.util.List;
 
 import solverslib.gamepad.Button;
 import solverslib.gamepad.GamepadButton;
@@ -60,12 +62,20 @@ public class Teleop extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
-
+        List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        LynxModule controlhub = null;
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            if (hub.isParent()){
+                controlhub=hub;
+                break;
+            }
+        }
         GamepadEx gamepadEx = new GamepadEx(gamepad1);
 
-        GamepadKeys.Button turnOnAutoFireButton = GamepadKeys.Button.DPAD_DOWN;
-
         GamepadKeys.Button shooterButtonAll = GamepadKeys.Button.B;
+        GamepadKeys.Button forceShootButton = GamepadKeys.Button.B;
         GamepadKeys.Button shooterButtonPurple = GamepadKeys.Button.Y;
         GamepadKeys.Button shooterButtonGreen = GamepadKeys.Button.X;
 
@@ -74,8 +84,8 @@ public class Teleop extends LinearOpMode {
         GamepadKeys.Button intakeEjectButton = GamepadKeys.Button.OPTIONS;
 
         GamepadKeys.Button farShootButton = GamepadKeys.Button.LEFT_BUMPER;
-        GamepadKeys.Trigger spindexerDebug = GamepadKeys.Trigger.LEFT_TRIGGER;
-        GamepadKeys.Trigger turnOffAutoFireButton = GamepadKeys.Trigger.RIGHT_TRIGGER;
+        GamepadKeys.Trigger spindexerDebugRight = GamepadKeys.Trigger.LEFT_TRIGGER;
+        GamepadKeys.Trigger spindexerDebugLeft = GamepadKeys.Trigger.RIGHT_TRIGGER;
 
 
         drivetrain = new Drivetrain(hardwareMap);
@@ -89,6 +99,7 @@ public class Teleop extends LinearOpMode {
                     spindexer.intakePos(0);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.wait1)
                 .onEnter(() -> {
@@ -96,12 +107,14 @@ public class Teleop extends LinearOpMode {
                     spindexer.intakePos(1);
                 })
                 .transitionTimed(timeForIntake)
+                .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.Intake2)
                 .onEnter(() -> {
                     spindexer.intakePos(1);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.wait2)
                 .onEnter(() -> {
@@ -109,12 +122,14 @@ public class Teleop extends LinearOpMode {
                     spindexer.intakePos(2);
                 })
                 .transitionTimed(timeForIntake)
+                .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.Intake3)
                 .onEnter(() -> {
                     spindexer.intakePos(2);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.wait3)
                 .onEnter(() -> {
@@ -231,6 +246,13 @@ public class Teleop extends LinearOpMode {
         long lastLoopTime = System.nanoTime();
 
         while (opModeIsActive()) {
+            if (!(controlhub==null)) {
+                controlhub.clearBulkCache();
+            }else{
+                for (LynxModule hub:allHubs){
+                    hub.clearBulkCache();
+                }
+            }
             long currentTime = System.nanoTime();
             double loopTime = (double) (currentTime - lastLoopTime) / 1000000;
             lastLoopTime = currentTime;
@@ -260,18 +282,16 @@ public class Teleop extends LinearOpMode {
             } else {
                 targetVelo = 2100;
             }
-            if (gamepadEx.getTrigger(spindexerDebug)>0.5) {
-                spindexer.setRawPower(-0.2);
+            if (gamepadEx.getTrigger(spindexerDebugRight)>0.5) {
+                spindexer.setRawPower(-0.3);
             } else {
                 spindexer.setRawPower(0);
             }
-
-            if (gamepadEx.getButton(turnOnAutoFireButton)) {
-                autofire = true;
-            } else if (gamepadEx.getTrigger(turnOffAutoFireButton) > 0.5) {
-                autofire = false;
+            if (gamepadEx.getTrigger(spindexerDebugLeft)>0.5) {
+                spindexer.setRawPower(0.3);
+            } else {
+                spindexer.setRawPower(0);
             }
-
             telemetry.addData("Loop time", loopTime);
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());

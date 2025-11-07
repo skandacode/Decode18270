@@ -18,7 +18,7 @@ public class Intake implements Subsystem {
 
     private RevColorSensorV3 colorSensor;
 
-    public static int read_times = 10;
+    public static int read_times = 5;
 
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = new Motor(hardwareMap, "intake");

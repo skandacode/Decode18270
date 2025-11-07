@@ -2,26 +2,27 @@ package org.firstinspires.ftc.teamcode;
 
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
-
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
+
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,12 +30,9 @@ import java.util.List;
 
 @Autonomous(name = "RedAutoFarIndex", group = "Auto")
 public class RedAutoFarIndex extends LinearOpMode {
-
-
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
-    public static Artifact currShoot = Artifact.NONE;
     public boolean shooterButtonAll = false;
     Limelight3A limelight;
     Drivetrain drivetrain;
@@ -46,16 +44,16 @@ public class RedAutoFarIndex extends LinearOpMode {
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.5;
     public static double timeForIntake = 0.23;
-
-
-    private final Pose startPose = new Pose(43, -0, Math.toRadians(-180));
-    private final Pose shootPose = new Pose(130, 2.6, Math.toRadians(130));
+    private final Pose opengate = new Pose(105, -28.6, Math.toRadians(-90));
+    private final Pose opengateback = new Pose(105, -7, Math.toRadians(-90));
+    private final Pose startPose = new Pose(43, 0, Math.toRadians(-180));
+    private final Pose shootPose = new Pose(130, 2.6, Math.toRadians(132.5));
     private final Pose intake1Pose = new Pose(115, 7, Math.toRadians(-90));
     private final Pose intake2Pose = new Pose(93, 7, Math.toRadians(-90));
     private final Pose intake3Pose = new Pose(67,7, Math.toRadians(-90));
     private final Pose intake1donePose = new Pose(115, -30, Math.toRadians(-90));
-    private final Pose intake2donePose = new Pose(93, -36, Math.toRadians(-90));
-    private final Pose intake3donePose = new Pose(67, -36, Math.toRadians(-90));
+    private final Pose intake2donePose = new Pose(93, -38, Math.toRadians(-90));
+    private final Pose intake3donePose = new Pose(67, -38, Math.toRadians(-90));
     private final Pose leave = new Pose(140, 2.6, Math.toRadians(135));
 
 
@@ -63,7 +61,7 @@ public class RedAutoFarIndex extends LinearOpMode {
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
-        MOVETOINTAKE1, INTAKE1,
+        MOVETOINTAKE1, INTAKE1, BACK, GATE, waitgate,
         MOVETOSHOOT2, wait2, SHOOT2,
         MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
         MOVETOSHOOT3, wait3,SHOOT3,
@@ -116,6 +114,14 @@ public class RedAutoFarIndex extends LinearOpMode {
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake2Pose.getHeading())
                 .build();
 
+        PathChain toIntake1back = follower.pathBuilder()
+                .addPath(new BezierLine(intake1Pose, opengateback))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengateback.getHeading())
+                .build();
+        PathChain intakeToGate= follower.pathBuilder()
+                .addPath(new BezierLine(intake1Pose, opengate))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengate.getHeading())
+                .build();
 
         PathChain toIntake3 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake3Pose))
@@ -304,7 +310,7 @@ public class RedAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(1.8)
 
                 .state(AutoStates.MOVETOINTAKE1)
                 .onEnter(()->{
@@ -318,9 +324,24 @@ public class RedAutoFarIndex extends LinearOpMode {
                     follower.followPath(toIntake1fin, 0.5, true);
                 })
                 .transitionTimed(2)
-
+                .state(AutoStates.BACK)
+                .onEnter(()->{
+                    follower.followPath(toIntake1back, 0.9, true);
+                })
+                .transitionTimed(0.4)
+                .state(AutoStates.GATE)
+                .onEnter(()->{
+                    follower.followPath(intakeToGate, 0.5, true);
+                    intake.setPower(0);
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.waitgate)
+                .onEnter(()->{
+                })
+                .transitionTimed(2)
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
+                    intake.setPower(1);
                     follower.followPath(toScore1, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -344,7 +365,7 @@ public class RedAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2)
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2, true);
@@ -391,7 +412,7 @@ public class RedAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2.3)
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     follower.followPath(toIntake3, true);
@@ -429,7 +450,7 @@ public class RedAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2)
                 .state(AutoStates.LEAVE)
                 .onEnter(()->{
                     follower.followPath(park, true);
@@ -449,7 +470,6 @@ public class RedAutoFarIndex extends LinearOpMode {
                     }
                 }
             } else {
-
                 panelsTelemetry.debug("Limelight", "No data available");
             }
             panelsTelemetry.debug("Pattern", pattern);

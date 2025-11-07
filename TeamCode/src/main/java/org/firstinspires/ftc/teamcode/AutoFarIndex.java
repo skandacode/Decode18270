@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 
 
-@Autonomous(name = "BlueAutoFarIndex", group = "Auto")
-public class BlueAutoFarIndex extends LinearOpMode {
+@Autonomous(name = "AutoFarIndex", group = "Auto")
+public class AutoFarIndex extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
@@ -37,6 +37,8 @@ public class BlueAutoFarIndex extends LinearOpMode {
     Limelight3A limelight;
     Drivetrain drivetrain;
     Intake intake;
+    String colorAlliance = "BLUE";
+    int Posmultiplier = 1;
     Shooter shooter;
     Spindexer spindexer;
     private StateMachine stateMachine;
@@ -46,22 +48,11 @@ public class BlueAutoFarIndex extends LinearOpMode {
     public static double timeForIntake = 0.23;
 
 
-    private final Pose startPose = new Pose(43, 0, Math.toRadians(180));
-    private final Pose shootPose = new Pose(130, -2.6, Math.toRadians(-130));
-    private final Pose intake1Pose = new Pose(115, -7, Math.toRadians(90));
-    private final Pose intake2Pose = new Pose(93, -7, Math.toRadians(90));
-    private final Pose intake3Pose = new Pose(67,-7, Math.toRadians(90));
-    private final Pose intake1donePose = new Pose(115, 25, Math.toRadians(90));
-    private final Pose intake2donePose = new Pose(93, 32, Math.toRadians(90));
-    private final Pose intake3donePose = new Pose(67, 35, Math.toRadians(90));
-    private final Pose leave = new Pose(140, -2.6, Math.toRadians(-135));
-
-
 
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
-        MOVETOINTAKE1, INTAKE1,
+        MOVETOINTAKE1, INTAKE1, BACK, GATE, waitgate,
         MOVETOSHOOT2, wait2, SHOOT2,
         MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
         MOVETOSHOOT3, wait3,SHOOT3,
@@ -97,6 +88,49 @@ public class BlueAutoFarIndex extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
+        while (opModeInInit()) {
+            for (LynxModule hub : hubs) hub.clearBulkCache();
+            follower.update();
+            LLResult result = limelight.getLatestResult();
+            if (result.isValid()) {
+                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                    panelsTelemetry.debug("Fiducial", "ID: %d" , fr.getFiducialId());
+                    if (fr.getFiducialId()>20&&fr.getFiducialId()<24){
+                        pattern=fr.getFiducialId()-20;
+                    }
+                }
+            } else {
+                panelsTelemetry.debug("Limelight", "No data available");
+            }
+            panelsTelemetry.debug("Pattern", pattern);
+            panelsTelemetry.debug("Init Pose: " + follower.getPose());
+            panelsTelemetry.debug("ALLIANCE: " + colorAlliance);
+            panelsTelemetry.update(telemetry);
+            if (gamepad1.a){
+                colorAlliance="BLUE";
+                Posmultiplier=1;
+            }
+            if (gamepad1.b){
+                colorAlliance="RED";
+                Posmultiplier=-1;
+            }
+        }
+
+        telemetry.update();
+        shooter.kickerDown();
+        waitForStart();
+        Pose opengate = new Pose(105, 28.6*Posmultiplier, Math.toRadians(95*Posmultiplier));
+        Pose opengateback = new Pose(105, 7*Posmultiplier, Math.toRadians(85*Posmultiplier));
+        Pose startPose = new Pose(43, 0*Posmultiplier, Math.toRadians(180*Posmultiplier));
+        Pose shootPose = new Pose(130, -2.6*Posmultiplier, Math.toRadians(-132.5*Posmultiplier));
+        Pose intake1Pose = new Pose(115, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose intake2Pose = new Pose(93, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose intake3Pose = new Pose(67,-7*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose intake1donePose = new Pose(115, 30*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose intake2donePose = new Pose(93, 38*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose intake3donePose = new Pose(67, 38*Posmultiplier, Math.toRadians(90*Posmultiplier));
+        Pose leave = new Pose(140, -2.6*Posmultiplier, Math.toRadians(-135*Posmultiplier));
         PathChain toShoot = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
@@ -114,6 +148,14 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake2Pose.getHeading())
                 .build();
 
+        PathChain toIntake1back = follower.pathBuilder()
+                .addPath(new BezierLine(intake1Pose, opengateback))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengateback.getHeading())
+                .build();
+        PathChain intakeToGate= follower.pathBuilder()
+                .addPath(new BezierLine(intake1Pose, opengate))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengate.getHeading())
+                .build();
 
         PathChain toIntake3 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake3Pose))
@@ -207,7 +249,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .state(RobotState.wait3)
                 .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
-                    spindexer.shootPos(0);
+                    spindexer.shootPos(shootorder[0]);
                 })
                 .transition(() -> spindexer.atTarget())
                 .transitionTimed(0.3)
@@ -302,7 +344,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(1.8)
 
                 .state(AutoStates.MOVETOINTAKE1)
                 .onEnter(()->{
@@ -315,10 +357,25 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     follower.followPath(toIntake1fin, 0.5, true);
                 })
+                .transitionTimed(1.7)
+                .state(AutoStates.BACK)
+                .onEnter(()->{
+                    follower.followPath(toIntake1back, 0.9, true);
+                })
+                .transitionTimed(0.4)
+                .state(AutoStates.GATE)
+                .onEnter(()->{
+                    follower.followPath(intakeToGate, 0.5, true);
+                    intake.setPower(0);
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.waitgate)
+                .onEnter(()->{
+                })
                 .transitionTimed(2)
-
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
+                    intake.setPower(1);
                     follower.followPath(toScore1, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -342,7 +399,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2)
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2, true);
@@ -389,7 +446,7 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2.3)
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     follower.followPath(toIntake3, true);
@@ -427,41 +484,20 @@ public class BlueAutoFarIndex extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2)
                 .state(AutoStates.LEAVE)
                 .onEnter(()->{
                     follower.followPath(park, true);
                 })
                 .build();
 
-        while (opModeInInit()) {
-            for (LynxModule hub : hubs) hub.clearBulkCache();
-            follower.update();
-            LLResult result = limelight.getLatestResult();
-            if (result.isValid()) {
-                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-                for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                    panelsTelemetry.debug("Fiducial", "ID: %d" , fr.getFiducialId());
-                    if (fr.getFiducialId()>20&&fr.getFiducialId()<24){
-                        pattern=fr.getFiducialId()-20;
-                    }
-                }
-            } else {
-                panelsTelemetry.debug("Limelight", "No data available");
-            }
-            panelsTelemetry.debug("Pattern", pattern);
-            panelsTelemetry.debug("Init Pose: " + follower.getPose());
-            panelsTelemetry.update(telemetry);
-        }
-
-        telemetry.update();
-        waitForStart();
         stateMachine.start();
         stateMachine.setState(RobotState.WaitForShoot);
+
         spindexer.setArtifactPositions(new String[] {"GREEN", "PURPLE", "PURPLE"});
         autoMachine.start();
         intake.setPower(1);
-        shooter.setTargetVelocity(2100);
+        shooter.setTargetVelocity(2000);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             stateMachine.update();

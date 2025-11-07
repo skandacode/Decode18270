@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 
 
-@Autonomous(name = "BlueAutoFarIndex15", group = "Auto")
-public class BlueAutoFarIndex15 extends LinearOpMode {
+@Autonomous(name = "BlueAutoFarIndexNew", group = "Auto")
+public class BlueAutoFarIndexNew extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
@@ -43,14 +43,10 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
     private StateMachine stateMachine;
     public int pattern = 1;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.4;
+    public static double timeforspin = 0.5;
     public static double timeForIntake = 0.23;
     private final Pose intake3control = new Pose(98, -20);
     private final Pose intake2control = new Pose(114, -16);
-    private final Pose intakeHumancontrol2 = new Pose(54, -15);
-    private final Pose intakeHumancontrol1 = new Pose(110, -7);
-    private final Pose intakeHuman = new Pose(47, 34, Math.toRadians(90));
-    private final Pose intakeHumanup = new Pose(43, 34, Math.toRadians(90));
     private final Pose opengate = new Pose(105, 28.6, Math.toRadians(90));
     private final Pose opengateback = new Pose(105, 7, Math.toRadians(90));
     private final Pose startPose = new Pose(43, 0, Math.toRadians(180));
@@ -68,15 +64,13 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
-        MOVETOHUMAN, INTAKEHUMAN,
-        MOVETOSHOOT2,force2, wait2, SHOOT2,
         MOVETOINTAKE1, INTAKE1, INTAKE1BACK,
         OPENGATE,wait3,
-        MOVETOSHOOT3, force3, wait4, SHOOT3,
+        MOVETOSHOOT3, wait4, SHOOT3,
         MOVETOINTAKE2, INTAKE2,
-        MOVETOSHOOT4, force4, wait5,SHOOT4,
+        MOVETOSHOOT4, wait5,SHOOT4,
         MOVETOINTAKE3, INTAKE3,
-        MOVETOSHOOT5, force5, wait6,SHOOT5,
+        MOVETOSHOOT5, wait6,SHOOT5,
         LEAVE
     }
     private enum RobotState {
@@ -110,11 +104,6 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
         PathChain toShoot = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
-                .build();
-        PathChain toIntakeHuman = follower.pathBuilder()
-                .addPath(new BezierCurve(shootPose, intakeHumancontrol1, intakeHumancontrol2, intakeHuman))
-                .setTangentHeadingInterpolation()
-                .setNoDeceleration()
                 .build();
         PathChain toIntake1 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake1Pose))
@@ -160,16 +149,7 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .addPath(new BezierLine(intake3Pose, intake3donePose))
                 .setLinearHeadingInterpolation(intake3Pose.getHeading(), intake3donePose.getHeading())
                 .build();
-        PathChain intakeHumanfin= follower.pathBuilder()
-                .addPath(new BezierLine(intakeHuman, intakeHumanup))
-                .setLinearHeadingInterpolation(intakeHuman.getHeading(), intakeHumanup.getHeading())
-                .build();
 
-        PathChain toScoreHuman = follower.pathBuilder()
-                .addPath(new BezierCurve(intakeHuman, intakeHumancontrol2, intakeHumancontrol1, shootPose))
-                .setLinearHeadingInterpolation(intakeHuman.getHeading(), shootPose.getHeading())
-                .setBrakingStrength(2)
-                .build();
         PathChain toScore1 = follower.pathBuilder()
                 .addPath(new BezierLine(intake1donePose, shootPose))
                 .setLinearHeadingInterpolation(intake1donePose.getHeading(), shootPose.getHeading())
@@ -198,11 +178,9 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .state(RobotState.Intake1)
                 .onEnter(() -> {
                     spindexer.intakePos(0);
-                    forceShoot=false;
                 })
                 .transition(() -> intake.isIntaked())
                 .transition(() -> forceShoot)
-
                 .state(RobotState.wait1)
                 .onEnter(() -> {
                     spindexer.afterIntake(Artifact.PURPLE);
@@ -318,42 +296,8 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                     shooterButtonAll=true;
                 })
                 .transitionTimed(1.67)
-                .state(AutoStates.MOVETOHUMAN)
-                .onEnter(()->{
-                    follower.followPath(toIntakeHuman, true);
-                })
-                .transition(()->follower.atParametricEnd())
-                .transitionTimed(2.5)
-                .state(AutoStates.INTAKEHUMAN)
-                .onEnter(()->{
-                    follower.followPath(intakeHumanfin, true);
-                })
-                .transitionTimed(0.6)
-                .state(AutoStates.MOVETOSHOOT2)
-                .onEnter(()->{
-                    forceShoot=true;
-                    follower.followPath(toScoreHuman, true);
-                })
-                .transitionTimed(1.1)
-                .state(AutoStates.force2)
-                .onEnter(()->{
-                    forceShoot=true;
-                })
-                .transition(()->follower.atParametricEnd())
-                .transitionTimed(1.1)
-
-                .state(AutoStates.wait2)
-                .onEnter(()->{
-                })
-                .transitionTimed(0.4)
-                .state(AutoStates.SHOOT2)
-                .onEnter(()->{
-                    shooterButtonAll=true;
-                })
-                .transitionTimed(1.67)
                 .state(AutoStates.MOVETOINTAKE1)
                 .onEnter(()->{
-                    forceShoot=false;
                     follower.followPath(toIntake1, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -361,9 +305,9 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
 
                 .state(AutoStates.INTAKE1)
                 .onEnter(()->{
-                    follower.followPath(toIntake1fin, 0.7, true);
+                    follower.followPath(toIntake1fin, 0.8, true);
                 })
-                .transitionTimed(1.2)
+                .transitionTimed(1)
                 .state(AutoStates.INTAKE1BACK)
                 .onEnter(()->{
                     follower.followPath(toIntake1back, 1, true);
@@ -382,17 +326,12 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .transitionTimed(1.2)
                 .state(AutoStates.MOVETOSHOOT3)
                 .onEnter(()->{
+                    forceShoot=true;
                     intake.setPower(1);
                     follower.followPath(toScore1, true);
                 })
-                .transitionTimed(1)
-                .state(AutoStates.force3)
-                .onEnter(()->{
-                    forceShoot=true;
-                })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(0.3)
-
+                .transitionTimed(1.3)
 
                 .state(AutoStates.wait4)
                 .onEnter(()->{
@@ -407,7 +346,7 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                         spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                     }
                 })
-                .transitionTimed(0.6)
+                .transitionTimed(0.5)
                 .state(AutoStates.SHOOT3)
                 .onEnter(()->{
                     shooterButtonAll=true;
@@ -415,7 +354,6 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .transitionTimed(1.67)
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
-                    forceShoot=false;
                     follower.followPath(toIntake2, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -430,15 +368,11 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
 
                 .state(AutoStates.MOVETOSHOOT4)
                 .onEnter(()->{
+                    forceShoot=true;
                     follower.followPath(toScore2, true);
                 })
-                .transitionTimed(1)
-                .state(AutoStates.force4)
-                .onEnter(()->{
-                    forceShoot=true;
-                })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(0.8)
+                .transitionTimed(1.8)
 
                 .state(AutoStates.wait5)
                 .onEnter(()->{
@@ -461,7 +395,6 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .transitionTimed(2)
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
-                    forceShoot=false;
                     follower.followPath(toIntake3, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -474,15 +407,11 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
                 .transitionTimed(3)
                 .state(AutoStates.MOVETOSHOOT5)
                 .onEnter(()->{
+                    forceShoot=true;
                     follower.followPath(toScore3, true);
                 })
-                .transitionTimed(1)
-                .state(AutoStates.MOVETOSHOOT5)
-                .onEnter(()->{
-                    forceShoot=true;
-                })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(1.9)
+                .transitionTimed(2.6)
                 .state(AutoStates.wait6)
                 .onEnter(()->{
                     if (pattern==1){
@@ -548,7 +477,6 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
             panelsTelemetry.debug("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             panelsTelemetry.debug("State: " + stateMachine.getState());
             panelsTelemetry.debug("State auto: " + autoMachine.getState());
-            panelsTelemetry.debug("Forceshoot " + forceShoot);
             panelsTelemetry.debug("Pose: " + follower.getPose());
             panelsTelemetry.update(telemetry);
 
