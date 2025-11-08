@@ -120,10 +120,10 @@ public class AutoFarIndex extends LinearOpMode {
         telemetry.update();
         shooter.kickerDown();
         waitForStart();
-        Pose opengate = new Pose(105, 28.6*Posmultiplier, Math.toRadians(95*Posmultiplier));
+        Pose opengate = new Pose(105, 29*Posmultiplier, Math.toRadians(95*Posmultiplier));
         Pose opengateback = new Pose(105, 7*Posmultiplier, Math.toRadians(85*Posmultiplier));
         Pose startPose = new Pose(43, 0*Posmultiplier, Math.toRadians(180*Posmultiplier));
-        Pose shootPose = new Pose(130, -2.6*Posmultiplier, Math.toRadians(-132.5*Posmultiplier));
+        Pose shootPose = new Pose(130, -2.6*Posmultiplier, Math.toRadians(-133.5*Posmultiplier));
         Pose intake1Pose = new Pose(115, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
         Pose intake2Pose = new Pose(93, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
         Pose intake3Pose = new Pose(67,-7*Posmultiplier, Math.toRadians(90*Posmultiplier));
@@ -249,7 +249,7 @@ public class AutoFarIndex extends LinearOpMode {
                 .state(RobotState.wait3)
                 .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
-                    spindexer.shootPos(shootorder[0]);
+                    spindexer.shootPos(0);
                 })
                 .transition(() -> spindexer.atTarget())
                 .transitionTimed(0.3)
@@ -371,6 +371,7 @@ public class AutoFarIndex extends LinearOpMode {
                 .transitionTimed(0.3)
                 .state(AutoStates.waitgate)
                 .onEnter(()->{
+                    intake.setPower(0);
                 })
                 .transitionTimed(2)
                 .state(AutoStates.MOVETOSHOOT2)
