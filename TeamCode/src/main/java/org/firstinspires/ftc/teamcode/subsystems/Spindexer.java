@@ -52,7 +52,6 @@ public class Spindexer implements Subsystem {
             this.pos = pos;
         }
     }
-
     private double curr_pos;
 
     public Spindexer(HardwareMap hardwareMap, Artifact[] startingPositions) {

@@ -1,24 +1,39 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import java.util.List;
+
+import dev.nextftc.core.units.Angle;
 import solverslib.controller.PIDFController;
 import solverslib.controller.feedforwards.SimpleMotorFeedforward;
+import solverslib.hardware.motors.Motor;
 
 @Configurable
 public class Shooter implements Subsystem {
 
-    private DcMotorEx shooterMotor1, shooterMotor2;
+    private Motor shooterMotor1, shooterMotor2;
     private Servo kicker1, kicker2;
+    private CRServo turret;
+
+    private Limelight3A limelight;
 
     private PIDFController pidf;
+    private PIDFController turretPIDF;
     private SimpleMotorFeedforward feedforward;
+    private SimpleMotorFeedforward turretFeedforward;
+
     private double targetVelocity = 0.0;
     private double currentVelocity = 0.0;
 
-    // --- PIDF coefficients ---
+    // --- Flywheel PIDF coefficients ---
     public static double kP = 0.0009;
     public static double kI = 0.0001;
     public static double kD = 0.0002;
@@ -28,26 +43,119 @@ public class Shooter implements Subsystem {
 
     public static boolean enablePIDF = true;
 
+    // --- Turret PD coefficients ---
+    public static double turretKP = 0.03;
+    public static double turretKD = 0.00001;
+    public static double turretKS = 0.1;
+    public static double turretKV = 1;
+
     // --- Kicker positions ---
-    public static double KICKER_UP = 0.28;
-    public static double KICKER_DOWN = 0.45;
+    public static double KICKER_UP = 0.32;
+    public static double KICKER_DOWN = 0.478;
 
     // --- Low-pass filter coefficient (for smoothing) ---
     public static double ALPHA = 0.3;
     private double smoothedVelocity = 0.0;
 
+    private Pipeline currPipeline = Pipeline.MOTIF;
+
+    public enum Pipeline{
+        BLUETRACK (0), REDTRACK (1), MOTIF (2);
+
+        public final int pipelineIndex;
+
+        Pipeline(int pipelineIndex){
+            this.pipelineIndex = pipelineIndex;
+        }
+    }
+
     public Shooter(HardwareMap hardwareMap) {
-        shooterMotor1 = hardwareMap.get(DcMotorEx.class, "outtakemotor1");
-        shooterMotor2 = hardwareMap.get(DcMotorEx.class, "outtakemotor2");
+        shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
+        shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         kicker1 = hardwareMap.get(Servo.class, "kicker1");
         kicker2 = hardwareMap.get(Servo.class, "kicker2");
-
-        shooterMotor1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        shooterMotor2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        turret = hardwareMap.get(CRServo.class, "turret");
 
         pidf = new PIDFController(kP, kI, kD, 0);
         feedforward = new SimpleMotorFeedforward(kS, kV);
+
+        turretPIDF = new PIDFController(turretKP, 0, turretKD, 0);
+        turretFeedforward = new SimpleMotorFeedforward(turretKS, turretKV);
+
+        setCurrPipeline(Pipeline.MOTIF);
+    }
+
+    public void setCurrPipeline(Pipeline pipeline){
+        this.currPipeline = pipeline;
+        limelight.pipelineSwitch(this.currPipeline.pipelineIndex);
+    }
+
+    public int getMotif(){
+        if (this.currPipeline != Pipeline.MOTIF){
+            setCurrPipeline(Pipeline.MOTIF);
+        }
+        LLResult result = limelight.getLatestResult();
+        int pattern = 0;
+        if (result.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                if (fr.getFiducialId()>20&&fr.getFiducialId()<24){
+                    pattern=fr.getFiducialId()-20;
+                }
+            }
+        }
+        return pattern;
+    }
+
+    public double convertAreatoDist(double area){
+        return (84.87951 / (Math.pow(area, 0.5) + 0.075744)) - 9.92407;   //https://www.desmos.com/calculator/mosqvk2gyd
+    }
+    public double convertDistToVelo(double dist){
+        return 1500;
+    }
+
+    public double[] getAngleDistance(Pipeline color){
+        if (color == Pipeline.MOTIF){
+            throw new IllegalArgumentException("Bull is a bum and made the color a motif. Pipeline.MOTIF is not a color");
+        }
+        if (this.currPipeline != color){
+            setCurrPipeline(color);
+        }
+        LLResult result = limelight.getLatestResult();
+        if (result.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults) {
+
+                return new double[]{fr.getTargetYDegrees(), convertAreatoDist(fr.getTargetArea())};
+            }
+        }
+        return null;
+    }
+
+    public void setTurretPower(double power){
+        turret.setPower(power);
+    }
+
+    public void aimAtTarget(Pipeline color){
+        double[] angleAndDistance = getAngleDistance(color);
+        double angle = angleAndDistance[0];
+        double distanceInches = angleAndDistance[1];
+
+        double power;
+        if (angle<1){
+            power = 0;
+        }else{
+            double rawpower = turretPIDF.calculate(angle, 0);
+            power = turretFeedforward.calculate(rawpower);
+
+            //TODO: add encoder driven limits using max and min
+        }
+
+        setTurretPower(power);
+        setTargetVelocity(convertDistToVelo(distanceInches));
     }
 
     public void setTargetVelocity(double target) {
@@ -60,8 +168,8 @@ public class Shooter implements Subsystem {
     }
 
     public void setDirectPower(double power) {
-        shooterMotor1.setPower(-power);
-        shooterMotor2.setPower(power);
+        shooterMotor1.set(-power);
+        shooterMotor2.set(power);
     }
 
     public void kickerUp() {
@@ -97,6 +205,8 @@ public class Shooter implements Subsystem {
 
         // Apply power
         setDirectPower(outputPower);
+        shooterMotor1.update();
+        shooterMotor2.update();
     }
 
     public double getTargetVelo() {

@@ -161,6 +161,7 @@ public class Teleop extends LinearOpMode {
                     }
                 })
                 .transition(() -> spindexer.atTarget())
+                .transitionTimed(1)
 
                 .state(RobotState.Shoot1)
                 .onEnter(() -> {
@@ -283,12 +284,12 @@ public class Teleop extends LinearOpMode {
                 targetVelo = 2100;
             }
             if (gamepadEx.getTrigger(spindexerDebugRight)>0.5) {
-                spindexer.setRawPower(-0.3);
+                spindexer.setRawPower(-0.4);
             } else {
                 spindexer.setRawPower(0);
             }
             if (gamepadEx.getTrigger(spindexerDebugLeft)>0.5) {
-                spindexer.setRawPower(0.3);
+                spindexer.setRawPower(0.4);
             } else {
                 spindexer.setRawPower(0);
             }

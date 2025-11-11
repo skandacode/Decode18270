@@ -22,6 +22,8 @@ public class ShooterTest extends LinearOpMode {
         long t1 = System.nanoTime();
         while (opModeIsActive()) {
             shooter.setTargetVelocity(shooterPower);
+            shooter.setTurretAngle(turretangle);
+
             if (kick){
                 shooter.kickerUp();
             }

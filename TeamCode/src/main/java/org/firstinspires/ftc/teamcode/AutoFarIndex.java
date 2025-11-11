@@ -81,7 +81,7 @@ public class AutoFarIndex extends LinearOpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(2);
         limelight.start();
         drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -91,17 +91,11 @@ public class AutoFarIndex extends LinearOpMode {
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             follower.update();
-            LLResult result = limelight.getLatestResult();
-            if (result.isValid()) {
-                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-                for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                    panelsTelemetry.debug("Fiducial", "ID: %d" , fr.getFiducialId());
-                    if (fr.getFiducialId()>20&&fr.getFiducialId()<24){
-                        pattern=fr.getFiducialId()-20;
-                    }
-                }
-            } else {
-                panelsTelemetry.debug("Limelight", "No data available");
+            int currpattern = shooter.getMotif();
+            if (currpattern != 0){
+                pattern = currpattern;
+            }else{
+                panelsTelemetry.addLine("Don't see anything");
             }
             panelsTelemetry.debug("Pattern", pattern);
             panelsTelemetry.debug("Init Pose: " + follower.getPose());
@@ -214,6 +208,7 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.intakePos(0);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.wait1)
@@ -222,6 +217,7 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.intakePos(1);
                 })
                 .transitionTimed(timeForIntake)
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.Intake2)
@@ -229,6 +225,7 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.intakePos(1);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.wait2)
@@ -237,6 +234,7 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.intakePos(2);
                 })
                 .transitionTimed(timeForIntake)
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.Intake3)
@@ -244,6 +242,7 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.intakePos(2);
                 })
                 .transition(() -> intake.isIntaked())
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.wait3)
@@ -252,12 +251,15 @@ public class AutoFarIndex extends LinearOpMode {
                     spindexer.shootPos(0);
                 })
                 .transition(() -> spindexer.atTarget())
+                .transition(() -> shooterButtonAll)
                 .transitionTimed(0.3)
+
                 .state(RobotState.reverseIntake)
                 .onEnter(() -> {
                     intake.setPower(-0.4);
                 })
                 .transitionTimed(0.15)
+                .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.WaitForShoot)
@@ -265,12 +267,15 @@ public class AutoFarIndex extends LinearOpMode {
                     intake.setPower(1);
                 })
                 .transition(() -> shooterButtonAll)
+
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
                     shooterButtonAll=false;
                     spindexer.shootPos(shootorder[0]);
                 })
                 .transition(() -> spindexer.atTarget())
+                .transitionTimed(1)
+
                 .state(RobotState.Shoot1)
                 .onEnter(() -> {
                     shooter.kickerUp();
@@ -499,6 +504,7 @@ public class AutoFarIndex extends LinearOpMode {
         autoMachine.start();
         intake.setPower(1);
         shooter.setTargetVelocity(2000);
+        spindexer.shootPos(0);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             stateMachine.update();
