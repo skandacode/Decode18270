@@ -4,11 +4,14 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
+import java.util.Arrays;
 import java.util.List;
 
 import dev.nextftc.core.units.Angle;
@@ -21,14 +24,14 @@ public class Shooter implements Subsystem {
 
     private Motor shooterMotor1, shooterMotor2;
     private Servo kicker1, kicker2;
-    private CRServo turret;
+    private Servo turret;
 
     private Limelight3A limelight;
 
+    private AnalogInput turretEncoder;
+
     private PIDFController pidf;
-    private PIDFController turretPIDF;
     private SimpleMotorFeedforward feedforward;
-    private SimpleMotorFeedforward turretFeedforward;
 
     private double targetVelocity = 0.0;
     private double currentVelocity = 0.0;
@@ -43,11 +46,9 @@ public class Shooter implements Subsystem {
 
     public static boolean enablePIDF = true;
 
-    // --- Turret PD coefficients ---
-    public static double turretKP = 0.03;
-    public static double turretKD = 0.00001;
-    public static double turretKS = 0.1;
-    public static double turretKV = 1;
+    // --- Turret bounds ---
+    public static double upperBound = 0.8;
+    public static double lowerBound = 0.22;
 
     // --- Kicker positions ---
     public static double KICKER_UP = 0.32;
@@ -73,17 +74,17 @@ public class Shooter implements Subsystem {
         shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
         shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
 
+        turretEncoder = hardwareMap.analogInput.get("turret_encoder");
+
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.start();
 
         kicker1 = hardwareMap.get(Servo.class, "kicker1");
         kicker2 = hardwareMap.get(Servo.class, "kicker2");
-        turret = hardwareMap.get(CRServo.class, "turret");
+        turret = hardwareMap.get(Servo.class, "turret");
 
         pidf = new PIDFController(kP, kI, kD, 0);
         feedforward = new SimpleMotorFeedforward(kS, kV);
-
-        turretPIDF = new PIDFController(turretKP, 0, turretKD, 0);
-        turretFeedforward = new SimpleMotorFeedforward(turretKS, turretKV);
 
         setCurrPipeline(Pipeline.MOTIF);
     }
@@ -91,6 +92,10 @@ public class Shooter implements Subsystem {
     public void setCurrPipeline(Pipeline pipeline){
         this.currPipeline = pipeline;
         limelight.pipelineSwitch(this.currPipeline.pipelineIndex);
+    }
+
+    public double getTurretVoltage(){
+        return turretEncoder.getVoltage();
     }
 
     public int getMotif(){
@@ -111,10 +116,12 @@ public class Shooter implements Subsystem {
     }
 
     public double convertAreatoDist(double area){
-        return (84.87951 / (Math.pow(area, 0.5) + 0.075744)) - 9.92407;   //https://www.desmos.com/calculator/mosqvk2gyd
+        double percentage = area*100;
+        return (84.87951 / (Math.pow(percentage, 0.5) + 0.075744)) - 9.92407;   //https://www.desmos.com/calculator/mosqvk2gyd
     }
+
     public double convertDistToVelo(double dist){
-        return 1500;
+        return 2000;
     }
 
     public double[] getAngleDistance(Pipeline color){
@@ -129,33 +136,48 @@ public class Shooter implements Subsystem {
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
 
-                return new double[]{fr.getTargetYDegrees(), convertAreatoDist(fr.getTargetArea())};
+                return new double[]{fr.getTargetXDegrees(), convertAreatoDist(fr.getTargetArea())};
             }
         }
         return null;
     }
 
-    public void setTurretPower(double power){
-        turret.setPower(power);
+    public void setTurretPos(double pos){
+        turret.setPosition(pos);
+    }
+
+    public double convertVoltageToDegrees(double volts){
+        return volts*109.95723-182.45569;
+    }
+    public double convertDegreestoServoPos(double deg){
+        return deg*0.00322222+0.51;
     }
 
     public void aimAtTarget(Pipeline color){
+        double turretPos;
+        double shooterVelo;
+        double currAngle = convertVoltageToDegrees(getTurretVoltage());
+        System.out.println("Currangle "+currAngle);
         double[] angleAndDistance = getAngleDistance(color);
-        double angle = angleAndDistance[0];
-        double distanceInches = angleAndDistance[1];
+        System.out.println(Arrays.toString(angleAndDistance));
+        if (angleAndDistance == null){
+            System.out.println("Cannot See");
+        }else {
+            double dAngle = angleAndDistance[0];
+            double distanceInches = angleAndDistance[1];
 
-        double power;
-        if (angle<1){
-            power = 0;
-        }else{
-            double rawpower = turretPIDF.calculate(angle, 0);
-            power = turretFeedforward.calculate(rawpower);
+            double targetAngle = currAngle + dAngle;
 
-            //TODO: add encoder driven limits using max and min
+            System.out.println(currAngle+"  "+dAngle+"   "+targetAngle);
+
+            turretPos = convertDegreestoServoPos(targetAngle);
+            turretPos = Range.clip(turretPos, lowerBound, upperBound);
+
+            shooterVelo = convertDistToVelo(distanceInches);
+
+            setTargetVelocity(shooterVelo);
+            setTurretPos(turretPos);
         }
-
-        setTurretPower(power);
-        setTargetVelocity(convertDistToVelo(distanceInches));
     }
 
     public void setTargetVelocity(double target) {
