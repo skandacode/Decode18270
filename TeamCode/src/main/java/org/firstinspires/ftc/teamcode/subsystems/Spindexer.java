@@ -22,7 +22,7 @@ public class Spindexer implements Subsystem {
     private double encoderPos = 0;
     private double error;
 
-    public static double ABS_OFFSET = 100;
+    public static double ABS_OFFSET = 42;
     public static double errorTolerance = 10;
 
     public static double kP = -0.007;
