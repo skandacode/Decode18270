@@ -2,11 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -14,9 +11,9 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
-
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Position;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
@@ -25,13 +22,12 @@ import org.firstinspires.ftc.teamcode.subsystems.LimelightMotif;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
-
 import java.util.Arrays;
 import java.util.List;
 
 
-@Autonomous(name = "AutoFarIndex", group = "Auto")
-public class AutoFarIndex extends LinearOpMode {
+@Autonomous(name = "AutoFarIndexNEW", group = "Auto")
+public class AutoFarIndexNEW extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
@@ -114,17 +110,17 @@ public class AutoFarIndex extends LinearOpMode {
         telemetry.update();
         shooter.kickerDown();
         waitForStart();
-        Pose opengate = new Pose(105, 29*Posmultiplier, Math.toRadians(95*Posmultiplier));
-        Pose opengateback = new Pose(105, 7*Posmultiplier, Math.toRadians(85*Posmultiplier));
-        Pose startPose = new Pose(43, 0*Posmultiplier, Math.toRadians(180*Posmultiplier));
-        Pose shootPose = new Pose(130, -2.6*Posmultiplier, Math.toRadians(-133.5*Posmultiplier));
-        Pose intake1Pose = new Pose(115, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose intake2Pose = new Pose(93, -7*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose intake3Pose = new Pose(67,-7*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose intake1donePose = new Pose(115, 30*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose intake2donePose = new Pose(93, 38*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose intake3donePose = new Pose(67, 38*Posmultiplier, Math.toRadians(90*Posmultiplier));
-        Pose leave = new Pose(140, -2.6*Posmultiplier, Math.toRadians(-135*Posmultiplier));
+        Pose opengate = new Pose(0, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengateback = new Pose(0, -50*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose startPose = new Pose(65, -29*Posmultiplier, Math.toRadians(180*Posmultiplier));
+        Pose shootPose = new Pose(-19, -19*Posmultiplier, Math.toRadians(-84*Posmultiplier));
+        Pose intake1Pose = new Pose(-12, -32*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(11, -32*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(35,-32*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake1donePose = new Pose(-12, -52*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2donePose = new Pose(11, -52*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3donePose = new Pose(35, -52*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose leave = new Pose(-25, -10*Posmultiplier, Math.toRadians(-85*Posmultiplier));
         PathChain toShoot = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())

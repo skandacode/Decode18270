@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystems.opmodes;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Position;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 import java.util.Arrays;
@@ -15,33 +20,33 @@ import java.util.Arrays;
 @Configurable
 public class ShooterTestTrack extends LinearOpMode {
     Shooter shooter;
-    public static double shooterPower = 0;
-    public static boolean kick = false;
-    public static double turretangle = 0;
-    public static Shooter.Pipeline aim = Shooter.Pipeline.BLUETRACK;
+    Follower follower;
+    public static Shooter.Goal target = Shooter.Goal.BLUE;
+    public static double hoodPosition = 0.9;
+    public static double shooterVelocity = 1500;
+    public static boolean enableAutoRanging = true;
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         shooter = new Shooter(hardwareMap);
+        follower = createFollower(hardwareMap);
+        follower.setStartingPose(Position.pose);
         waitForStart();
         long t1 = System.nanoTime();
-        ElapsedTime elapsedTime = new ElapsedTime();
         while (opModeIsActive()) {
-            try {
-                if (elapsedTime.milliseconds()>250) {
-                    shooter.aimAtTarget(aim);
-                    elapsedTime.reset();
-                }
-            }catch (Exception e){
-
+            if (gamepad1.aWasPressed()){
+                follower.setPose(new Pose(63, 0, Math.toRadians(180)));
             }
-
-            if (kick){
-                shooter.kickerUp();
+            follower.updatePose();
+            telemetry.addData("Angle and distance:", Arrays.toString(shooter.getAngleDistance(follower.getPose(), target)));
+            shooter.aimAtTarget(follower.getPose(), target);
+            if (!enableAutoRanging) {
+                shooter.setHood(hoodPosition);
+                shooter.setTargetVelocity(shooterVelocity);
             }
-            else{
-                shooter.kickerDown();
-            }
+            Position.pose = follower.getPose();
+            telemetry.addData("Current Pos", follower.getPose());
             telemetry.addData("Shooter Target", shooter.getTargetVelo());
             telemetry.addData("Shooter Velocity", shooter.getCurrentVelocity());
             telemetry.addData("Turret Voltage", shooter.getTurretVoltage());

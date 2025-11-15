@@ -17,7 +17,8 @@ public class ShooterTest extends LinearOpMode {
     public static double shooterPower = 0;
     public static boolean kick = false;
     public static double turretangle = 0;
-    public static Shooter.Pipeline aim = Shooter.Pipeline.REDTRACK;
+    public static double hoodPosition = 0.5;
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
@@ -26,13 +27,8 @@ public class ShooterTest extends LinearOpMode {
         long t1 = System.nanoTime();
         while (opModeIsActive()) {
             shooter.setTargetVelocity(shooterPower);
-            shooter.setTurretPos(turretangle);
-            try {
-                telemetry.addData("limelight out", Arrays.toString(shooter.getAngleDistance(aim)));
-            }catch (Exception e){
-
-            }
-
+            shooter.setTurretPos(shooter.convertDegreestoServoPos(turretangle));
+            shooter.setHood(hoodPosition);
             if (kick){
                 shooter.kickerUp();
             }
