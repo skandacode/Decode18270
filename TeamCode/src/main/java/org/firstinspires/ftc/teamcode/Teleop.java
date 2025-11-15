@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.panels.Panels;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,6 +16,7 @@ import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.pedroPathing.Position;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -31,8 +36,8 @@ public class Teleop extends LinearOpMode {
     Intake intake;
     Shooter shooter;
     Spindexer spindexer;
+    Follower follower;
 
-    double targetVelo = 1350;
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.41;
     public static double timeForIntake = 0.23;
@@ -59,10 +64,11 @@ public class Teleop extends LinearOpMode {
 
     public static Artifact currShoot = Artifact.NONE;
 
+    public static Shooter.Goal target = Shooter.Goal.BLUE;
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
-        List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
         LynxModule controlhub = null;
         for (LynxModule hub : allHubs) {
@@ -83,15 +89,18 @@ public class Teleop extends LinearOpMode {
         GamepadKeys.Button intakeStopButton = GamepadKeys.Button.A;
         GamepadKeys.Button intakeEjectButton = GamepadKeys.Button.OPTIONS;
 
-        GamepadKeys.Button farShootButton = GamepadKeys.Button.LEFT_BUMPER;
         GamepadKeys.Trigger spindexerDebugRight = GamepadKeys.Trigger.LEFT_TRIGGER;
         GamepadKeys.Trigger spindexerDebugLeft = GamepadKeys.Trigger.RIGHT_TRIGGER;
+
+        GamepadKeys.Button positionResetButton = GamepadKeys.Button.LEFT_BUMPER;
 
 
         drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
+        follower = createFollower(hardwareMap);
+        follower.setStartingPose(Position.pose);
 
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
@@ -241,12 +250,30 @@ public class Teleop extends LinearOpMode {
                 .build();
 
 
+        while (opModeInInit()){
+            for (LynxModule hub : allHubs) hub.clearBulkCache();
+            follower.update();
+
+            if (gamepad1.a){
+                target = Shooter.Goal.BLUE;
+            }
+            if (gamepad1.b){
+                target = Shooter.Goal.RED;
+            }
+            telemetry.addData("Shooter Target", target);
+            telemetry.addData("Current Pos", follower.getPose());
+            telemetry.update();
+        }
+
         waitForStart();
         stateMachine.start();
         shooter.kickerDown();
         long lastLoopTime = System.nanoTime();
 
         while (opModeIsActive()) {
+            long currentTime = System.nanoTime();
+            double loopTime = (double) (currentTime - lastLoopTime) / 1000000;
+            lastLoopTime = currentTime;
             if (!(controlhub==null)) {
                 controlhub.clearBulkCache();
             }else{
@@ -254,9 +281,24 @@ public class Teleop extends LinearOpMode {
                     hub.clearBulkCache();
                 }
             }
-            long currentTime = System.nanoTime();
-            double loopTime = (double) (currentTime - lastLoopTime) / 1000000;
-            lastLoopTime = currentTime;
+
+            // ---Shooter aiming code---
+            if (gamepadEx.wasJustPressed(positionResetButton)){
+                follower.setPose(new Pose(63, 0, Math.toRadians(180)));
+            }
+
+            follower.updatePose();
+            Position.pose = follower.getPose();
+
+            telemetry.addData("Angle and distance:", Arrays.toString(shooter.getAngleDistance(Position.pose, target)));
+            shooter.aimAtTarget(Position.pose, target);
+
+            telemetry.addData("Current Pos", follower.getPose());
+            telemetry.addData("Shooter Target", shooter.getTargetVelo());
+            telemetry.addData("Shooter Velocity", shooter.getCurrentVelocity());
+            telemetry.addData("Turret Voltage", shooter.getTurretVoltage());
+
+            // ---Driver controls---
 
             double forward = gamepadEx.getLeftY();
             double strafe = gamepadEx.getLeftX();
@@ -268,6 +310,8 @@ public class Teleop extends LinearOpMode {
             }
             drivetrain.driveRobotCentric(forward, strafe, turn);
 
+            // ---Intake controls---
+
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0);
             } else {
@@ -278,17 +322,11 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            if (gamepadEx.getButton(farShootButton)) {
-                targetVelo = 2200;
-            } else {
-                targetVelo = 2100;
-            }
+            // ---Spindexer debug controls---
+
             if (gamepadEx.getTrigger(spindexerDebugRight)>0.5) {
                 spindexer.setRawPower(-0.4);
-            } else {
-                spindexer.setRawPower(0);
-            }
-            if (gamepadEx.getTrigger(spindexerDebugLeft)>0.5) {
+            } else if (gamepadEx.getTrigger(spindexerDebugLeft)>0.5) {
                 spindexer.setRawPower(0.4);
             } else {
                 spindexer.setRawPower(0);
@@ -300,7 +338,6 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Spindexer Pos", spindexer.getCurr_pos());
             telemetry.addData("Encoder Pos", spindexer.getEncoderPosition());
 
-            shooter.setTargetVelocity(targetVelo);
             gamepadEx.readButtons();
             stateMachine.update();
             drivetrain.update();
@@ -308,6 +345,7 @@ public class Teleop extends LinearOpMode {
             shooter.update();
             spindexer.update();
             telemetry.update();
+
         }
     }
 }
