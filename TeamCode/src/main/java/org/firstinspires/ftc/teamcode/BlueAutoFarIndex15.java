@@ -45,6 +45,9 @@ public class BlueAutoFarIndex15 extends LinearOpMode {
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.4;
     public static double timeForIntake = 0.23;
+
+
+
     private final Pose intake3control = new Pose(98, -20);
     private final Pose intake2control = new Pose(114, -16);
     private final Pose intakeHumancontrol2 = new Pose(54, -15);

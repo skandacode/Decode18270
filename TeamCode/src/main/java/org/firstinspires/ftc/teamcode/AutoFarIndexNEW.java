@@ -33,20 +33,17 @@ public class AutoFarIndexNEW extends LinearOpMode {
     public static int[] shootorder = {0, 1, 2};
     public boolean shooterButtonAll = false;
     LimelightMotif limelightMotif;
-    Drivetrain drivetrain;
     Intake intake;
     String colorAlliance = "BLUE";
     int Posmultiplier = 1;
     Shooter shooter;
     Spindexer spindexer;
-    private StateMachine stateMachine;
     public int pattern = 1;
     public static double timeforkicker = 0.2;
     public static double timeforspin = 0.5;
     public static double timeForIntake = 0.23;
 
-
-
+    public static Shooter.Goal shooterTarget = Shooter.Goal.BLUE;
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
@@ -79,11 +76,12 @@ public class AutoFarIndexNEW extends LinearOpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         limelightMotif = new LimelightMotif(hardwareMap);
-        drivetrain = new Drivetrain(hardwareMap);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
+        shooter.kickerDown();
+
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             follower.update();
@@ -99,10 +97,12 @@ public class AutoFarIndexNEW extends LinearOpMode {
             panelsTelemetry.update(telemetry);
             if (gamepad1.a){
                 colorAlliance="BLUE";
+                shooterTarget = Shooter.Goal.BLUE;
                 Posmultiplier=1;
             }
             if (gamepad1.b){
                 colorAlliance="RED";
+                shooterTarget = Shooter.Goal.RED;
                 Posmultiplier=-1;
             }
         }
@@ -110,6 +110,8 @@ public class AutoFarIndexNEW extends LinearOpMode {
         telemetry.update();
         shooter.kickerDown();
         waitForStart();
+
+
         Pose opengate = new Pose(0, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose opengateback = new Pose(0, -50*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose startPose = new Pose(65, -29*Posmultiplier, Math.toRadians(180*Posmultiplier));
@@ -121,17 +123,17 @@ public class AutoFarIndexNEW extends LinearOpMode {
         Pose intake2donePose = new Pose(11, -52*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3donePose = new Pose(35, -52*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose leave = new Pose(-25, -10*Posmultiplier, Math.toRadians(-85*Posmultiplier));
+
+
         PathChain toShoot = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
 
-
         PathChain toIntake1 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake1Pose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake1Pose.getHeading())
                 .build();
-
 
         PathChain toIntake2 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake2Pose))
@@ -142,6 +144,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .addPath(new BezierLine(intake1Pose, opengateback))
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengateback.getHeading())
                 .build();
+
         PathChain intakeToGate= follower.pathBuilder()
                 .addPath(new BezierLine(intake1Pose, opengate))
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengate.getHeading())
@@ -151,44 +154,42 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .addPath(new BezierLine(shootPose, intake3Pose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake3Pose.getHeading())
                 .build();
+
         PathChain toIntake1fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake1Pose, intake1donePose))
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), intake1donePose.getHeading())
                 .build();
 
-
         PathChain toIntake2fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake2Pose, intake2donePose))
                 .setLinearHeadingInterpolation(intake2Pose.getHeading(), intake2donePose.getHeading())
                 .build();
+
         PathChain toIntake2back= follower.pathBuilder()
                 .addPath(new BezierLine(intake2donePose, intake2Pose))
                 .setLinearHeadingInterpolation(intake2donePose.getHeading(), intake2Pose.getHeading())
                 .build();
-
 
         PathChain toIntake3fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake3Pose, intake3donePose))
                 .setLinearHeadingInterpolation(intake3Pose.getHeading(), intake3donePose.getHeading())
                 .build();
 
-
         PathChain toScore1 = follower.pathBuilder()
                 .addPath(new BezierLine(intake1donePose, shootPose))
                 .setLinearHeadingInterpolation(intake1donePose.getHeading(), shootPose.getHeading())
                 .build();
-
 
         PathChain toScore2 = follower.pathBuilder()
                 .addPath(new BezierLine(intake2Pose, shootPose))
                 .setLinearHeadingInterpolation(intake2Pose.getHeading(), shootPose.getHeading())
                 .build();
 
-
         PathChain toScore3 = follower.pathBuilder()
                 .addPath(new BezierLine(intake3donePose, shootPose))
                 .setLinearHeadingInterpolation(intake3donePose.getHeading(), shootPose.getHeading())
                 .build();
+
         PathChain park = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, leave))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), leave.getHeading())
@@ -200,9 +201,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
 
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
-                .onEnter(() -> {
-                    spindexer.intakePos(0);
-                })
+                .onEnter(() -> spindexer.intakePos(0))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> shooterButtonAll)
 
@@ -217,9 +216,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
 
 
                 .state(RobotState.Intake2)
-                .onEnter(() -> {
-                    spindexer.intakePos(1);
-                })
+                .onEnter(() -> spindexer.intakePos(1))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> shooterButtonAll)
 
@@ -234,9 +231,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
 
 
                 .state(RobotState.Intake3)
-                .onEnter(() -> {
-                    spindexer.intakePos(2);
-                })
+                .onEnter(() -> spindexer.intakePos(2))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> shooterButtonAll)
 
@@ -251,17 +246,13 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .transitionTimed(0.3)
 
                 .state(RobotState.reverseIntake)
-                .onEnter(() -> {
-                    intake.setPower(-0.4);
-                })
+                .onEnter(() -> intake.setPower(-0.4))
                 .transitionTimed(0.15)
                 .transition(() -> shooterButtonAll)
 
 
                 .state(RobotState.WaitForShoot)
-                .onEnter(() -> {
-                    intake.setPower(1);
-                })
+                .onEnter(() -> intake.setPower(1))
                 .transition(() -> shooterButtonAll)
 
                 .state(RobotState.PreShoot1)
@@ -273,9 +264,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .transitionTimed(1)
 
                 .state(RobotState.Shoot1)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker)
 
 
@@ -284,32 +273,24 @@ public class AutoFarIndexNEW extends LinearOpMode {
                     spindexer.afterShoot();
                 })
                 .state(RobotState.PreShoot2)
-                .onEnter(() -> {
-                    spindexer.shootPos(shootorder[1]);
-                })
+                .onEnter(() -> spindexer.shootPos(shootorder[1]))
                 .transitionTimed(timeforspin)
 
 
                 .state(RobotState.Shoot2)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker)
                 .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                 })
                 .state(RobotState.PreShoot3)
-                .onEnter(() -> {
-                    spindexer.shootPos(shootorder[2]);
-                })
+                .onEnter(() -> spindexer.shootPos(shootorder[2]))
                 .transitionTimed(timeforspin)
 
 
                 .state(RobotState.Shoot3)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker, RobotState.Intake1)
                 .onExit(() -> {
                     shooter.kickerDown();

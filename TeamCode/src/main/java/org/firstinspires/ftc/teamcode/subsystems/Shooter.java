@@ -55,8 +55,6 @@ public class Shooter implements Subsystem {
     public static double hoodUpperBound = 0.94;
     public static double hoodLowerBound = 0.68;
 
-    // -- Hood Position
-    public static double HOOD_POSITION = 0.5;
 
     // --- Kicker positions ---
     public static double KICKER_UP = 0.32;
@@ -95,10 +93,6 @@ public class Shooter implements Subsystem {
         return turretEncoder.getVoltage();
     }
 
-    public double convertDistToVelo(double dist){
-        return 2000;
-    }
-
     public double[] getAngleDistance(Pose currPosition, Goal target){
         double dx = target.position.getX()-currPosition.getX();
         double dy = target.position.getY()-currPosition.getY();
@@ -119,7 +113,8 @@ public class Shooter implements Subsystem {
     }
 
     public void setTurretPos(double pos){
-        turret.setPosition(pos);
+        double safePos = Range.clip(pos, turretLowerBound, turretUpperBound);
+        turret.setPosition(safePos);
     }
 
     public double convertDegreestoServoPos(double deg){

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.driveConstants;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.panels.Panels;
@@ -29,10 +30,10 @@ import solverslib.gamepad.Button;
 import solverslib.gamepad.GamepadButton;
 import solverslib.gamepad.GamepadEx;
 import solverslib.gamepad.GamepadKeys;
+
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
-    Drivetrain drivetrain;
     Intake intake;
     Shooter shooter;
     Spindexer spindexer;
@@ -66,18 +67,23 @@ public class Teleop extends LinearOpMode {
 
     public static Shooter.Goal target = Shooter.Goal.BLUE;
 
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+
+        // Lynx modules & manual bulk caching
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
         LynxModule controlhub = null;
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-            if (hub.isParent()){
-                controlhub=hub;
+            if (hub.isParent()) {
+                controlhub = hub;
                 break;
             }
         }
+
         GamepadEx gamepadEx = new GamepadEx(gamepad1);
 
         GamepadKeys.Button shooterButtonAll = GamepadKeys.Button.B;
@@ -94,19 +100,15 @@ public class Teleop extends LinearOpMode {
 
         GamepadKeys.Button positionResetButton = GamepadKeys.Button.LEFT_BUMPER;
 
-
-        drivetrain = new Drivetrain(hardwareMap);
+        // subsystems
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
         follower.setStartingPose(Position.pose);
-
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(RobotState.Intake1)
-                .onEnter(() -> {
-                    spindexer.intakePos(0);
-                })
+                .onEnter(() -> spindexer.intakePos(0))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> gamepadEx.isDown(forceShootButton))
 
@@ -119,9 +121,7 @@ public class Teleop extends LinearOpMode {
                 .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.Intake2)
-                .onEnter(() -> {
-                    spindexer.intakePos(1);
-                })
+                .onEnter(() -> spindexer.intakePos(1))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> gamepadEx.isDown(forceShootButton))
 
@@ -134,9 +134,7 @@ public class Teleop extends LinearOpMode {
                 .transition(() -> gamepadEx.isDown(forceShootButton))
 
                 .state(RobotState.Intake3)
-                .onEnter(() -> {
-                    spindexer.intakePos(2);
-                })
+                .onEnter(() -> spindexer.intakePos(2))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> gamepadEx.isDown(forceShootButton))
 
@@ -159,7 +157,6 @@ public class Teleop extends LinearOpMode {
                     currShoot = Artifact.PURPLE;
                 })
 
-
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
                     if (autofire) {
@@ -173,11 +170,8 @@ public class Teleop extends LinearOpMode {
                 .transitionTimed(1)
 
                 .state(RobotState.Shoot1)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker)
-
                 .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
@@ -192,7 +186,6 @@ public class Teleop extends LinearOpMode {
                 .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
                 .transition(() -> gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
 
-
                 .state(RobotState.PreShoot2)
                 .onEnter(() -> {
                     if (autofire) {
@@ -205,15 +198,12 @@ public class Teleop extends LinearOpMode {
                 .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot2)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker)
                 .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
                 })
-
 
                 .state(RobotState.waitforrelease2)
                 .transition(() -> !gamepadEx.getButton(shooterButtonGreen) && !gamepadEx.getButton(shooterButtonPurple))
@@ -223,7 +213,6 @@ public class Teleop extends LinearOpMode {
                 .transition(() -> autofire)
                 .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> currShoot = Artifact.GREEN)
                 .transition(() -> gamepadEx.getButton(shooterButtonPurple) && spindexer.getIndex(Artifact.PURPLE) != -1, () -> currShoot = Artifact.PURPLE)
-
 
                 .state(RobotState.PreShoot3)
                 .onEnter(() -> {
@@ -237,9 +226,7 @@ public class Teleop extends LinearOpMode {
                 .transitionTimed(timeforspin)
 
                 .state(RobotState.Shoot3)
-                .onEnter(() -> {
-                    shooter.kickerUp();
-                })
+                .onEnter(() -> shooter.kickerUp())
                 .transitionTimed(timeforkicker, RobotState.Intake1)
                 .onExit(() -> {
                     shooter.kickerDown();
@@ -249,15 +236,14 @@ public class Teleop extends LinearOpMode {
 
                 .build();
 
-
-        while (opModeInInit()){
+        // Init loop - keep clearing cache and update follower for stable init telemetry
+        while (opModeInInit()) {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
             follower.update();
-
-            if (gamepad1.a){
+            if (gamepad1.a) {
                 target = Shooter.Goal.BLUE;
             }
-            if (gamepad1.b){
+            if (gamepad1.b) {
                 target = Shooter.Goal.RED;
             }
             telemetry.addData("Shooter Target", target);
@@ -268,28 +254,30 @@ public class Teleop extends LinearOpMode {
         waitForStart();
         stateMachine.start();
         shooter.kickerDown();
+        follower.startTeleopDrive();
+
         long lastLoopTime = System.nanoTime();
 
         while (opModeIsActive()) {
-            long currentTime = System.nanoTime();
-            double loopTime = (double) (currentTime - lastLoopTime) / 1000000;
-            lastLoopTime = currentTime;
-            if (!(controlhub==null)) {
+            if (controlhub != null) {
                 controlhub.clearBulkCache();
-            }else{
-                for (LynxModule hub:allHubs){
-                    hub.clearBulkCache();
-                }
+            } else {
+                for (LynxModule hub : allHubs) hub.clearBulkCache();
             }
 
-            // ---Shooter aiming code---
-            if (gamepadEx.wasJustPressed(positionResetButton)){
-                follower.setPose(new Pose(63, 0, Math.toRadians(180)));
-            }
+            // read gamepad inputs into GamepadEx immediately after clearing cache
+            gamepadEx.readButtons();
 
-            follower.updatePose();
+            // timing
+            long currentTime = System.nanoTime();
+            double loopTime = (double) (currentTime - lastLoopTime) / 1_000_000.0;
+            lastLoopTime = currentTime;
+
+            // follower pose updates (use sensors while cache is fresh)
+            follower.update();
             Position.pose = follower.getPose();
 
+            // Shooter aiming (depends on fresh pose)
             telemetry.addData("Angle and distance:", Arrays.toString(shooter.getAngleDistance(Position.pose, target)));
             shooter.aimAtTarget(Position.pose, target);
 
@@ -298,8 +286,10 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Shooter Velocity", shooter.getCurrentVelocity());
             telemetry.addData("Turret Voltage", shooter.getTurretVoltage());
 
-            // ---Driver controls---
+            // Update state machine (transitions use gamepadEx state)
+            stateMachine.update();
 
+            // ---Driver controls--- (read from GamepadEx which was updated above)
             double forward = gamepadEx.getLeftY();
             double strafe = gamepadEx.getLeftX();
             double turn = gamepadEx.getRightX();
@@ -308,44 +298,44 @@ public class Teleop extends LinearOpMode {
                 strafe *= 0.3;
                 turn *= 0.3;
             }
-            drivetrain.driveRobotCentric(forward, strafe, turn);
+
+            follower.setTeleOpDrive(forward, -1*strafe, -0.8*turn, true);
+
 
             // ---Intake controls---
-
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0);
+            } else if (gamepadEx.getButton(intakeEjectButton)) {
+                intake.setPower(-1);
             } else {
-                if (gamepadEx.getButton(intakeEjectButton)) {
-                    intake.setPower(-1);
-                } else {
-                    intake.setPower(1);
-                }
+                intake.setPower(1);
             }
 
             // ---Spindexer debug controls---
-
-            if (gamepadEx.getTrigger(spindexerDebugRight)>0.5) {
+            if (gamepadEx.getTrigger(spindexerDebugRight) > 0.5) {
                 spindexer.setRawPower(-0.4);
-            } else if (gamepadEx.getTrigger(spindexerDebugLeft)>0.5) {
+            } else if (gamepadEx.getTrigger(spindexerDebugLeft) > 0.5) {
                 spindexer.setRawPower(0.4);
             } else {
                 spindexer.setRawPower(0);
             }
+            // ---Shooter aiming code---
+            if (gamepadEx.wasJustPressed(positionResetButton)){
+                follower.setPose(new Pose(65, 0, Math.toRadians(180)));
+            }
+            // Subsystem updates
+            intake.update();
+            shooter.update();
+            spindexer.update();
+
+            // Telemetry (add loop time & state info at the end for accuracy)
             telemetry.addData("Loop time", loopTime);
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());
             telemetry.addData("Shooter Velo", shooter.getCurrentVelocity());
             telemetry.addData("Spindexer Pos", spindexer.getCurr_pos());
             telemetry.addData("Encoder Pos", spindexer.getEncoderPosition());
-
-            gamepadEx.readButtons();
-            stateMachine.update();
-            drivetrain.update();
-            intake.update();
-            shooter.update();
-            spindexer.update();
             telemetry.update();
-
         }
     }
 }
