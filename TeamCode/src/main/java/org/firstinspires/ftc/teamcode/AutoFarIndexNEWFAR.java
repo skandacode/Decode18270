@@ -17,7 +17,6 @@ import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Position;
-import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.LimelightMotif;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -28,7 +27,7 @@ import java.util.List;
 
 @Configurable
 @Autonomous(name = "AutoFarIndexNEW", group = "Auto")
-public class AutoFarIndexNEW extends LinearOpMode {
+public class AutoFarIndexNEWFAR extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};

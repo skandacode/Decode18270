@@ -13,7 +13,7 @@ public class LimelightMotif {
 
     public LimelightMotif(HardwareMap hardwareMap){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(2);
+        limelight.pipelineSwitch(0);
         start();
     }
 
@@ -31,8 +31,8 @@ public class LimelightMotif {
         if (result.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                if (fr.getFiducialId()>20&&fr.getFiducialId()<24){
-                    pattern=fr.getFiducialId()-20;
+                if (fr.getFiducialId() > 20 && fr.getFiducialId() < 24){
+                    pattern = fr.getFiducialId()-20;
                 }
             }
         }
