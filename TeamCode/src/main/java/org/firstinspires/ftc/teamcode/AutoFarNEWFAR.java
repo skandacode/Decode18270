@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "AutoFarIndexNEW", group = "Auto")
-public class AutoFarIndexNEWFAR extends LinearOpMode {
+@Autonomous(name = "AutoFarNEWFARSHOOT", group = "Auto")
+public class AutoFarNEWFAR extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
@@ -48,12 +48,14 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
-        MOVETOINTAKE1, INTAKE1, BACK, GATE, waitgate,
+        MOVETOINTAKE1, INTAKE1, INTAKE1BACK,
         MOVETOSHOOT2, wait2, SHOOT2,
         MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
         MOVETOSHOOT3, wait3,SHOOT3,
-        MOVETOINTAKE3, INTAKE3,
+        MOVETOINTAKE3, INTAKE3, INTAKE3BACK,
         MOVETOSHOOT4, wait4,SHOOT4,
+        MOVETOINTAKE4, INTAKE4, INTAKE4BACK,
+        MOVETOSHOOT5, wait5,SHOOT5,
         LEAVE
     }
     private enum RobotState {
@@ -111,19 +113,15 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
         telemetry.update();
         shooter.kickerDown();
         waitForStart();
-
-
-        Pose opengate = new Pose(0, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose opengateback = new Pose(0, -50*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose startPose = new Pose(65, -24*Posmultiplier, Math.toRadians(180*Posmultiplier));
-        Pose shootPose = new Pose(-24, -24*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake1Pose = new Pose(-12, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2Pose = new Pose(13, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3Pose = new Pose(40,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake1donePose = new Pose(-12, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2donePose = new Pose(12, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3donePose = new Pose(40, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose leave = new Pose(-5, -30*Posmultiplier, Math.toRadians(-85*Posmultiplier));
+        Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose shootPose = new Pose(63, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake1Pose = new Pose(40, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(50, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(50,-30*Posmultiplier, Math.toRadians(-80*Posmultiplier));
+        Pose intake1donePose = new Pose(50, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2donePose = new Pose(63, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3donePose = new Pose(60, -54*Posmultiplier, Math.toRadians(-70*Posmultiplier));
+        Pose leave = new Pose(50, -50*Posmultiplier, Math.toRadians(-85*Posmultiplier));
 
 
         PathChain toShoot = follower.pathBuilder()
@@ -141,16 +139,6 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake2Pose.getHeading())
                 .build();
 
-        PathChain toIntake1back = follower.pathBuilder()
-                .addPath(new BezierLine(intake1Pose, opengateback))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengateback.getHeading())
-                .build();
-
-        PathChain intakeToGate= follower.pathBuilder()
-                .addPath(new BezierLine(intake1Pose, opengate))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), opengate.getHeading())
-                .build();
-
         PathChain toIntake3 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, intake3Pose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), intake3Pose.getHeading())
@@ -165,10 +153,18 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                 .addPath(new BezierLine(intake2Pose, intake2donePose))
                 .setLinearHeadingInterpolation(intake2Pose.getHeading(), intake2donePose.getHeading())
                 .build();
+        PathChain toIntake1back= follower.pathBuilder()
+                .addPath(new BezierLine(intake1donePose, intake1Pose))
+                .setLinearHeadingInterpolation(intake1donePose.getHeading(), intake1Pose.getHeading())
+                .build();
 
         PathChain toIntake2back= follower.pathBuilder()
                 .addPath(new BezierLine(intake2donePose, intake2Pose))
                 .setLinearHeadingInterpolation(intake2donePose.getHeading(), intake2Pose.getHeading())
+                .build();
+        PathChain toIntake3back= follower.pathBuilder()
+                .addPath(new BezierLine(intake3donePose, intake3Pose))
+                .setLinearHeadingInterpolation(intake3donePose.getHeading(), intake3Pose.getHeading())
                 .build();
 
         PathChain toIntake3fin = follower.pathBuilder()
@@ -235,8 +231,6 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                 .onEnter(() -> spindexer.intakePos(2))
                 .transition(() -> intake.isIntaked())
                 .transition(() -> shooterButtonAll)
-
-
                 .state(RobotState.wait3)
                 .onEnter(() -> {
                     spindexer.afterIntake(intake.getArtifact());
@@ -314,27 +308,17 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT1)
                 .onEnter(()->{
                     follower.followPath(toShoot, true);
-                    shooter.setHood(0.78);
-                    shooter.setTargetVelocity(1120);
-                    shooter.setTurretPos(shooter.convertDegreestoServoPos(47.5*Posmultiplier));
+                    shooter.setHood(0.9);
+                    shooter.setTargetVelocity(1500);
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(71*Posmultiplier));
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(2)
+                .transitionTimed(0.5)
                 .state(AutoStates.wait1)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shootorder = new int[]{0, 1, 2};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
-                    }else if (pattern==2){
-                        shootorder = new int[]{2, 0, 1};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
-                    }else{
-                        shootorder = new int[]{1, 2, 0};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
-
-                    }
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
-                .transitionTimed(0.5)
+                .transitionTimed(0.2)
                 .state(AutoStates.SHOOT1)
                 .onEnter(()->{
                     shooterButtonAll=true;
@@ -347,29 +331,13 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                     follower.followPath(toIntake1, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(1)
+                .transitionTimed(0.7)
 
                 .state(AutoStates.INTAKE1)
                 .onEnter(()->{
                     follower.followPath(toIntake1fin, 0.5, true);
                 })
                 .transitionTimed(1.7)
-                .state(AutoStates.BACK)
-                .onEnter(()->{
-                    follower.followPath(toIntake1back, 0.9, true);
-                })
-                .transitionTimed(0.4)
-                .state(AutoStates.GATE)
-                .onEnter(()->{
-                    follower.followPath(intakeToGate, 0.5, true);
-                    intake.setPower(0);
-                })
-                .transitionTimed(0.3)
-                .state(AutoStates.waitgate)
-                .onEnter(()->{
-                    intake.setPower(0);
-                })
-                .transitionTimed(1.4)
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
                     intake.setPower(1);
@@ -380,37 +348,28 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.wait2)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shootorder = new int[]{2, 0, 1};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
-                    }else if (pattern==2){
-                        shootorder = new int[]{1, 2, 0};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
-                    }else{
-                        shootorder = new int[]{0, 1, 2};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
-                    }
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
                 .transitionTimed(0.3)
                 .state(AutoStates.SHOOT2)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2.3)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(1)
+                .transitionTimed(0.5)
 
                 .state(AutoStates.INTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2fin, 0.5, true);
                 })
-                .transition(()->follower.atParametricEnd())
-                .transitionTimed(3)
+                .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
+                .transitionTimed(2)
 
                 .state(AutoStates.INTAKE2BACK)
                 .onEnter(()->{
@@ -424,29 +383,19 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                     follower.followPath(toScore2, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(2)
+                .transitionTimed(1.4)
 
                 .state(AutoStates.wait3)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shootorder = new int[]{1, 2, 0};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
-                    }else if (pattern==2){
-                        shootorder = new int[]{0, 1, 2};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
-                    }else{
-                        shootorder = new int[]{2, 0, 1};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
-                    }
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
                 .transitionTimed(0.3)
                 .state(AutoStates.SHOOT3)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(2.7)
+                .transitionTimed(2.4)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
-
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     follower.followPath(toIntake3, true);
@@ -457,34 +406,53 @@ public class AutoFarIndexNEWFAR extends LinearOpMode {
                 .onEnter(()->{
                     follower.followPath(toIntake3fin, 0.5, true);
                 })
-                .transition(()->follower.atParametricEnd())
-                .transitionTimed(3)
+                .transitionTimed(2)
+                .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
                 .state(AutoStates.MOVETOSHOOT4)
                 .onEnter(()->{
                     follower.followPath(toScore3, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(3)
+                .transitionTimed(1.5)
                 .state(AutoStates.wait4)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shootorder = new int[]{0, 1, 2};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
-                    }else if (pattern==2){
-                        shootorder = new int[]{2, 0, 1};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
-                    }else{
-                        shootorder = new int[]{1, 2, 0};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
-
-                    }
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
                 .transitionTimed(0.3)
                 .state(AutoStates.SHOOT4)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(3)
+                .transitionTimed(2)
+                .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
+                .state(AutoStates.MOVETOINTAKE4)
+                .onEnter(()->{
+                    follower.followPath(toIntake3, true);
+                })
+                .transition(()->follower.atParametricEnd())
+                .transitionTimed(2)
+                .state(AutoStates.INTAKE4)
+                .onEnter(()->{
+                    follower.followPath(toIntake3fin, 0.5, true);
+                })
+                .transitionTimed(2)
+                .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
+                .state(AutoStates.MOVETOSHOOT5)
+                .onEnter(()->{
+                    follower.followPath(toScore3, true);
+                })
+                .transition(()->follower.atParametricEnd())
+                .transitionTimed(1.5)
+                .state(AutoStates.wait5)
+                .onEnter(()->{
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
+                })
+                .transitionTimed(0.3)
+                .state(AutoStates.SHOOT5)
+                .onEnter(()->{
+                    shooterButtonAll=true;
+                })
+                .transitionTimed(2)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
                 .state(AutoStates.LEAVE)
                 .onEnter(()->{
