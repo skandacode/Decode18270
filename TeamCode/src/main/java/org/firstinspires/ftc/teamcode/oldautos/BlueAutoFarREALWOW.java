@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.oldautos;
 
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
@@ -7,6 +7,7 @@ import com.pedropathing.geometry.BezierCurve;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -30,6 +31,7 @@ import java.util.List;
 
 
 @Autonomous(name = "BlueAutoFarReal", group = "Auto")
+@Disabled
 public class BlueAutoFarREALWOW extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();

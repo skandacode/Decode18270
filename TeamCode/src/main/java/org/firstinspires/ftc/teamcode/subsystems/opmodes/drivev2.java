@@ -1,23 +1,11 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsystems.opmodes;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.panels.Panels;
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.robot.Robot;
-import com.sfdev.assembly.state.StateMachine;
-import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
-import java.util.Arrays;
-
-import solverslib.gamepad.Button;
-import solverslib.gamepad.GamepadButton;
 import solverslib.gamepad.GamepadEx;
 import solverslib.gamepad.GamepadKeys;
 @TeleOp
