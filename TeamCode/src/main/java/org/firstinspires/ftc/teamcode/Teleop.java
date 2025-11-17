@@ -99,6 +99,8 @@ public class Teleop extends LinearOpMode {
         GamepadKeys.Trigger spindexerDebugLeft = GamepadKeys.Trigger.RIGHT_TRIGGER;
 
         GamepadKeys.Button positionResetButton = GamepadKeys.Button.LEFT_BUMPER;
+        GamepadKeys.Button positionResetButtonHeading = GamepadKeys.Button.DPAD_DOWN;
+
 
         // subsystems
         intake = new Intake(hardwareMap);
@@ -321,7 +323,12 @@ public class Teleop extends LinearOpMode {
             }
             // ---Shooter aiming code---
             if (gamepadEx.wasJustPressed(positionResetButton)){
-                follower.setPose(new Pose(65, 0, follower.getPose().getHeading()));
+                if (gamepadEx.wasJustPressed(positionResetButtonHeading)) {
+                    follower.setPose(new Pose(65, 0, Math.toRadians(180)));
+                }else{
+                    follower.setPose(new Pose(65, 0, follower.getHeading()));
+
+                }
             }
             // Subsystem updates
             intake.update();
