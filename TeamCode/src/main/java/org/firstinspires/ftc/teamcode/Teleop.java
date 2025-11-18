@@ -323,12 +323,7 @@ public class Teleop extends LinearOpMode {
             }
             // ---Shooter aiming code---
             if (gamepadEx.wasJustPressed(positionResetButton)){
-                if (gamepadEx.wasJustPressed(positionResetButtonHeading)) {
-                    follower.setPose(new Pose(65, 0, Math.toRadians(180)));
-                }else{
-                    follower.setPose(new Pose(65, 0, follower.getHeading()));
-
-                }
+                follower.setPose(new Pose(65, 0, Math.toRadians(180)));
             }
             // Subsystem updates
             intake.update();

@@ -117,14 +117,14 @@ public class AutoFarNEWFAR extends LinearOpMode {
         Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose shootPose = new Pose(63, -20*Posmultiplier, Math.toRadians(-89*Posmultiplier));
         Pose shootPoseangcycles = new Pose(63, -20*Posmultiplier, Math.toRadians(-88*Posmultiplier));
-        Pose shootPoseangstart = new Pose(63, -20*Posmultiplier, Math.toRadians(-88*Posmultiplier));
+        Pose shootPoseangstart = new Pose(63, -20*Posmultiplier, Math.toRadians(-89*Posmultiplier));
         Pose intake1Pose = new Pose(40, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2Pose = new Pose(30, -58*Posmultiplier, Math.toRadians(-0*Posmultiplier));
         Pose intake3Pose = new Pose(64,-30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1donePose = new Pose(40, -59*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2donePose = new Pose(63, -69*Posmultiplier, Math.toRadians(-0*Posmultiplier));
         Pose intake3donePose = new Pose(64, -60*Posmultiplier, Math.toRadians(-95*Posmultiplier));
-        Pose leave = new Pose(50, -50*Posmultiplier, Math.toRadians(-85*Posmultiplier));
+        Pose leave = new Pose(50, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
 
 
         PathChain toShoot = follower.pathBuilder()
@@ -378,14 +378,14 @@ public class AutoFarNEWFAR extends LinearOpMode {
                     follower.followPath(toIntake2back, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(0.3)
+                .transitionTimed(0.04)
 
                 .state(AutoStates.MOVETOSHOOT3)
                 .onEnter(()->{
                     follower.followPath(toScore2, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(1.4)
+                .transitionTimed(2)
 
                 .state(AutoStates.wait3)
                 .onEnter(()->{
@@ -468,6 +468,7 @@ public class AutoFarNEWFAR extends LinearOpMode {
         spindexer.setArtifactPositions(new String[] {"GREEN", "PURPLE", "PURPLE"});
         autoMachine.start();
         intake.setPower(1);
+        shooter.setHood(0.9);
         spindexer.shootPos(0);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
