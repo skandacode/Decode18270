@@ -67,6 +67,9 @@ public class Teleop extends LinearOpMode {
 
     public static Shooter.Goal target = Shooter.Goal.BLUE;
 
+    public static double powerOffsetIncrements = 20;
+    public static double turretOffsetIncrements = 2;
+
 
 
     @Override
@@ -325,6 +328,21 @@ public class Teleop extends LinearOpMode {
             if (gamepadEx.wasJustPressed(positionResetButton)){
                 follower.setPose(new Pose(65, 0, Math.toRadians(180)));
             }
+
+            // Shooter offset
+            if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
+                Shooter.powerOffset -= powerOffsetIncrements;
+            }
+            if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)){
+                Shooter.turretOffset -= turretOffsetIncrements;
+            }
+            if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)){
+                Shooter.turretOffset += turretOffsetIncrements;
+            }
+            if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_UP)){
+                Shooter.powerOffset += powerOffsetIncrements;
+            }
+
             // Subsystem updates
             intake.update();
             shooter.update();

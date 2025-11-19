@@ -52,8 +52,8 @@ public class Shooter implements Subsystem {
     public static double turretLowerBound = 0.22;
 
     // -- Hood bounds
-    public static double hoodUpperBound = 0.94;
-    public static double hoodLowerBound = 0.68;
+    public static double hoodUpperBound = 0.86;
+    public static double hoodLowerBound = 0.6;
 
 
     // --- Kicker positions ---
@@ -73,6 +73,9 @@ public class Shooter implements Subsystem {
             position = pose;
         }
     }
+
+    public static double powerOffset = 0;
+    public static double turretOffset = 0;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
@@ -126,12 +129,12 @@ public class Shooter implements Subsystem {
         double angle = angleDistance[0];
         double distance = angleDistance[1];
 
-        double servoPos = convertDegreestoServoPos(angle);
+        double servoPos = convertDegreestoServoPos(angle + turretOffset);
 
         servoPos = Range.clip(servoPos, turretLowerBound, turretUpperBound);
 
         setTurretPos(servoPos);
-        setTargetVelocity(ShooterTables.getShooterVelocity(distance));
+        setTargetVelocity(ShooterTables.getShooterVelocity(distance) + powerOffset);
         setHood(ShooterTables.getHoodPosition(distance));
     }
 
