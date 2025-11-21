@@ -44,7 +44,7 @@ public class Intake implements Subsystem {
     }
 
     public boolean isIntaked(){
-        return getIntakeDistance() < 1.3;
+        return getIntakeDistance() < 1;
     }
     public Artifact getArtifact(){
         if(!isIntaked()) return Artifact.NONE;

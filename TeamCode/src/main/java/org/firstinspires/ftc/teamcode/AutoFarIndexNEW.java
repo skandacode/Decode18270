@@ -119,11 +119,11 @@ public class AutoFarIndexNEW extends LinearOpMode {
         Pose startPose = new Pose(65, -24*Posmultiplier, Math.toRadians(180*Posmultiplier));
         Pose shootPose = new Pose(-24, -24*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1Pose = new Pose(-12, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2Pose = new Pose(13, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3Pose = new Pose(40,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(17, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(43,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1donePose = new Pose(-12, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2donePose = new Pose(12, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3donePose = new Pose(40, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2donePose = new Pose(17 , -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3donePose = new Pose(43, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose leave = new Pose(-5, -30*Posmultiplier, Math.toRadians(-85*Posmultiplier));
 
 
@@ -315,9 +315,9 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT1)
                 .onEnter(()->{
                     follower.followPath(toShoot, true);
-                    shooter.setHood(0.78);
-                    shooter.setTargetVelocity(1120);
-                    shooter.setTurretPos(shooter.convertDegreestoServoPos(47.5*Posmultiplier));
+                    shooter.setHood(0.72);
+                    shooter.setTargetVelocity(1180);
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(47*Posmultiplier));
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(2)

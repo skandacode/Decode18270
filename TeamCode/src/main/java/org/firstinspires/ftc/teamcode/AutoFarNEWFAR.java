@@ -40,9 +40,9 @@ public class AutoFarNEWFAR extends LinearOpMode {
     Spindexer spindexer;
     public int pattern = 1;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.53;
+    public static double timeforspin = 0.41;
     public static double timeForIntake = 0.23;
-    public static double waitforkickerdown = 0.1;
+    public static double waitforkickerdown = 0.03;
 
     public static Shooter.Goal shooterTarget = Shooter.Goal.BLUE;
 
@@ -50,11 +50,11 @@ public class AutoFarNEWFAR extends LinearOpMode {
         MOVETOSHOOT1, wait1, SHOOT1,
         MOVETOINTAKE1, INTAKE1, INTAKE1BACK,
         MOVETOSHOOT2, wait2, SHOOT2,
-        MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
+        MOVETOINTAKE2, INTAKE2, INTAKE2BACK, INTAKE2BACKIN, INTAKE2BACKE,
         MOVETOSHOOT3, wait3,SHOOT3,
-        MOVETOINTAKE3, INTAKE3, INTAKE3BACK,
+        MOVETOINTAKE3, INTAKE3, INTAKE3BACK,INTAKE3BACKIN, INTAKE3BACKE,
         MOVETOSHOOT4, wait4,SHOOT4,
-        MOVETOINTAKE4, INTAKE4, INTAKE4BACK,
+        MOVETOINTAKE4, INTAKE4, INTAKE4BACK,INTAKE4BACKIN, INTAKE4BACKE,
         MOVETOSHOOT5, wait5,SHOOT5,
         LEAVE
     }
@@ -83,7 +83,10 @@ public class AutoFarNEWFAR extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
+
         shooter.kickerDown();
+        shooter.setHood(0.845);
+        spindexer.shootPos(0);
 
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
@@ -111,19 +114,19 @@ public class AutoFarNEWFAR extends LinearOpMode {
         }
 
         telemetry.update();
-        shooter.kickerDown();
-        shooter.setHood(0.9);
-        waitForStart();
+        waitForStart(); //unnecessary technically because you are doing while opmode in init right before
+
+
         Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose shootPose = new Pose(63, -20*Posmultiplier, Math.toRadians(-89*Posmultiplier));
-        Pose shootPoseangcycles = new Pose(63, -20*Posmultiplier, Math.toRadians(-88*Posmultiplier));
-        Pose shootPoseangstart = new Pose(63, -20*Posmultiplier, Math.toRadians(-89*Posmultiplier));
+        Pose shootPose = new Pose(60, -20*Posmultiplier, Math.toRadians(-99*Posmultiplier));
+        Pose shootPoseangcycles = new Pose(60, -20*Posmultiplier, Math.toRadians(-98.5*Posmultiplier));
+        Pose shootPoseangstart = new Pose(60, -20*Posmultiplier, Math.toRadians(-96*Posmultiplier));
         Pose intake1Pose = new Pose(40, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2Pose = new Pose(30, -58*Posmultiplier, Math.toRadians(-0*Posmultiplier));
-        Pose intake3Pose = new Pose(64,-30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(64, -40*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(60,-30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1donePose = new Pose(40, -59*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2donePose = new Pose(63, -69*Posmultiplier, Math.toRadians(-0*Posmultiplier));
-        Pose intake3donePose = new Pose(64, -60*Posmultiplier, Math.toRadians(-95*Posmultiplier));
+        Pose intake2donePose = new Pose(63, -59*Posmultiplier, Math.toRadians(-95*Posmultiplier));
+        Pose intake3donePose = new Pose(55, -61*Posmultiplier, Math.toRadians(-107*Posmultiplier));
         Pose leave = new Pose(50, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
 
 
@@ -311,10 +314,14 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT1)
                 .onEnter(()->{
                     follower.followPath(toShoot, true);
+                    //shooter.setHood(0.845); //if you change this you need to update it in init too
+                    //shooter.setTargetVelocity(1660);
+                    //shooter.setTurretPos(shooter.convertDegreestoServoPos(69*Posmultiplier));
                     shooter.aimAtTarget(shootPoseangstart, shooterTarget);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(0.5)
+
                 .state(AutoStates.wait1)
                 .onEnter(()->{
                     spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
@@ -324,7 +331,7 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(2.5)
+                .transitionTimed(2.2)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
 
                 .state(AutoStates.MOVETOINTAKE1)
@@ -336,10 +343,12 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.INTAKE1)
                 .onEnter(()->{
-                    shooter.aimAtTarget(shootPoseangcycles, shooterTarget);
                     follower.followPath(toIntake1fin, 0.5, true);
                 })
                 .transitionTimed(1.7)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
                     intake.setPower(1);
@@ -353,36 +362,55 @@ public class AutoFarNEWFAR extends LinearOpMode {
                     spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
                 .transitionTimed(0.3)
+
                 .state(AutoStates.SHOOT2)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(2.5)
+                .transitionTimed(2.2)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
+
+
                 .state(AutoStates.MOVETOINTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2, true);
                 })
                 .transition(()->follower.atParametricEnd())
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
                 .transitionTimed(0.9)
+
 
                 .state(AutoStates.INTAKE2)
                 .onEnter(()->{
                     follower.followPath(toIntake2fin, 0.67, true);
                 })
                 .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
-                .transitionTimed(2)
+                .transitionTimed(1.3)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
 
                 .state(AutoStates.INTAKE2BACK)
                 .onEnter(()->{
                     follower.followPath(toIntake2back, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(0.04)
+                .transitionTimed(0.2)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+                .state(AutoStates.INTAKE2BACKIN)
+                .onEnter(()->{
+                    follower.followPath(toIntake2fin, 0.67, true);
+                })
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+                .transitionTimed(1)
 
                 .state(AutoStates.MOVETOSHOOT3)
                 .onEnter(()->{
                     follower.followPath(toScore2, true);
+                    shooter.aimAtTarget(shootPoseangcycles, shooterTarget);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(2)
@@ -396,49 +424,105 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(2.4)
+                .transitionTimed(2.3)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
+
                 .state(AutoStates.MOVETOINTAKE3)
                 .onEnter(()->{
                     follower.followPath(toIntake3, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(2)
+                .transitionTimed(1)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
                 .state(AutoStates.INTAKE3)
                 .onEnter(()->{
                     follower.followPath(toIntake3fin, 0.5, true);
                 })
-                .transitionTimed(2)
-                .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
+                .transitionTimed(1)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+
+                .state(AutoStates.INTAKE3BACK)
+                .onEnter(()->{
+                    follower.followPath(toIntake2back, true);
+                })
+                .transition(()->follower.atParametricEnd())
+                .transitionTimed(0.3)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+
+                .state(AutoStates.INTAKE3BACKIN)
+                .onEnter(()->{
+                    follower.followPath(toIntake3fin, 0.67, true);
+                })
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+                .transitionTimed(1)
+
+
                 .state(AutoStates.MOVETOSHOOT4)
                 .onEnter(()->{
                     follower.followPath(toScore3, true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(1.5)
+
+
                 .state(AutoStates.wait4)
                 .onEnter(()->{
                     spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
                 .transitionTimed(0.3)
+
                 .state(AutoStates.SHOOT4)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
                 .transitionTimed(2)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
+
+
                 .state(AutoStates.MOVETOINTAKE4)
                 .onEnter(()->{
                     follower.followPath(toIntake3, true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(2)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+
                 .state(AutoStates.INTAKE4)
                 .onEnter(()->{
                     follower.followPath(toIntake3fin, 0.5, true);
                 })
-                .transitionTimed(2)
+                .transitionTimed(1)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+
+                .state(AutoStates.INTAKE4BACK)
+                .onEnter(()->{
+                    follower.followPath(toIntake3back, 0.7, true);
+                })
+                .transitionTimed(1)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transition(()->stateMachine.getStateEnum()==RobotState.WaitForShoot)
+
+
+                .state(AutoStates.INTAKE4BACKIN)
+                .onEnter(()->{
+                    follower.followPath(toIntake3fin, 0.67, true);
+                })
                 .transition(()->stateMachine.getStateEnum() == RobotState.WaitForShoot)
+                .transition(()->stateMachine.getStateEnum()==RobotState.reverseIntake)
+                .transitionTimed(1)
+
+
                 .state(AutoStates.MOVETOSHOOT5)
                 .onEnter(()->{
                     follower.followPath(toScore3, true);
@@ -468,8 +552,8 @@ public class AutoFarNEWFAR extends LinearOpMode {
         spindexer.setArtifactPositions(new String[] {"GREEN", "PURPLE", "PURPLE"});
         autoMachine.start();
         intake.setPower(1);
-        shooter.setHood(0.9);
         spindexer.shootPos(0);
+
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
 
