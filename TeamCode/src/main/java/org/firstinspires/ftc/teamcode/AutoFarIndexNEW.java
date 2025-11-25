@@ -119,11 +119,11 @@ public class AutoFarIndexNEW extends LinearOpMode {
         Pose startPose = new Pose(65, -24*Posmultiplier, Math.toRadians(180*Posmultiplier));
         Pose shootPose = new Pose(-24, -24*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1Pose = new Pose(-12, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2Pose = new Pose(17, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3Pose = new Pose(43,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(16, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(40,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1donePose = new Pose(-12, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2donePose = new Pose(17 , -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3donePose = new Pose(43, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2donePose = new Pose(16, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3donePose = new Pose(40, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose leave = new Pose(-5, -30*Posmultiplier, Math.toRadians(-85*Posmultiplier));
 
 

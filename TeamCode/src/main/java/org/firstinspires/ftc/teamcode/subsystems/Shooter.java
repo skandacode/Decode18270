@@ -20,6 +20,7 @@ import solverslib.controller.PIDFController;
 import solverslib.controller.feedforwards.SimpleMotorFeedforward;
 import solverslib.hardware.ServoEx;
 import solverslib.hardware.motors.Motor;
+import solverslib.util.MathUtils;
 
 @Configurable
 public class Shooter implements Subsystem {
@@ -48,8 +49,8 @@ public class Shooter implements Subsystem {
     public static boolean enablePIDF = true;
 
     // --- Turret bounds ---
-    public static double turretUpperBound = 0.8;
-    public static double turretLowerBound = 0.22;
+    public static double turretUpperBound = 1;
+    public static double turretLowerBound = 0;
 
     // -- Hood bounds
     public static double hoodUpperBound = 0.86;
@@ -100,7 +101,7 @@ public class Shooter implements Subsystem {
         double dx = target.position.getX()-currPosition.getX();
         double dy = target.position.getY()-currPosition.getY();
         double angle = Math.atan2(dy, dx);
-        double turretAngle = Math.toDegrees(-angle + currPosition.getHeading());
+        double turretAngle = Math.toDegrees(-angle + currPosition.getHeading()+ Math.PI);
 
         while (Math.abs(turretAngle)>180){
             if (turretAngle>0){
@@ -148,8 +149,8 @@ public class Shooter implements Subsystem {
     }
 
     public void setDirectPower(double power) {
-        shooterMotor1.set(power);
-        shooterMotor2.set(-power);
+        shooterMotor1.set(-power);
+        shooterMotor2.set(power);
     }
 
     public void kickerUp() {
