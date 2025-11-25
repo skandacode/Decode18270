@@ -1,11 +1,8 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.oldautos;
 
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -88,6 +85,12 @@ public class AutoFarIndex extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
+
+
+        shooter.setHood(0.845);
+        spindexer.shootPos(0);
+        shooter.setTargetVelocity(0);
+
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
             follower.update();
@@ -112,7 +115,6 @@ public class AutoFarIndex extends LinearOpMode {
         }
 
         telemetry.update();
-        shooter.kickerDown();
         waitForStart();
         Pose opengate = new Pose(105, 29*Posmultiplier, Math.toRadians(95*Posmultiplier));
         Pose opengateback = new Pose(105, 7*Posmultiplier, Math.toRadians(85*Posmultiplier));

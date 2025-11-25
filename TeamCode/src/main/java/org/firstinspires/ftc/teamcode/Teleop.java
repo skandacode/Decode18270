@@ -270,19 +270,11 @@ public class Teleop extends LinearOpMode {
                 for (LynxModule hub : allHubs) hub.clearBulkCache();
             }
 
-            // read gamepad inputs into GamepadEx immediately after clearing cache
             gamepadEx.readButtons();
 
-            // timing
-            long currentTime = System.nanoTime();
-            double loopTime = (double) (currentTime - lastLoopTime) / 1_000_000.0;
-            lastLoopTime = currentTime;
-
-            // follower pose updates (use sensors while cache is fresh)
             follower.update();
             Position.pose = follower.getPose();
 
-            // Shooter aiming (depends on fresh pose)
             telemetry.addData("Angle and distance:", Arrays.toString(shooter.getAngleDistance(Position.pose, target)));
             shooter.aimAtTarget(Position.pose, target);
 
@@ -291,10 +283,8 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Shooter Velocity", shooter.getCurrentVelocity());
             telemetry.addData("Turret Voltage", shooter.getTurretVoltage());
 
-            // Update state machine (transitions use gamepadEx state)
             stateMachine.update();
 
-            // ---Driver controls--- (read from GamepadEx which was updated above)
             double forward = gamepadEx.getLeftY();
             double strafe = gamepadEx.getLeftX();
             double turn = gamepadEx.getRightX();
@@ -307,7 +297,6 @@ public class Teleop extends LinearOpMode {
             follower.setTeleOpDrive(forward, -1*strafe, -0.8*turn, true);
 
 
-            // ---Intake controls---
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0);
             } else if (gamepadEx.getButton(intakeEjectButton)) {
@@ -316,7 +305,6 @@ public class Teleop extends LinearOpMode {
                 intake.setPower(1);
             }
 
-            // ---Spindexer debug controls---
             if (gamepadEx.getTrigger(spindexerDebugRight) > 0.5) {
                 spindexer.setRawPower(-0.4);
             } else if (gamepadEx.getTrigger(spindexerDebugLeft) > 0.5) {
@@ -324,12 +312,11 @@ public class Teleop extends LinearOpMode {
             } else {
                 spindexer.setRawPower(0);
             }
-            // ---Shooter aiming code---
+
             if (gamepadEx.wasJustPressed(positionResetButton)){
                 follower.setPose(new Pose(65, 0, Math.toRadians(180)));
             }
 
-            // Shooter offset
             if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
                 Shooter.powerOffset -= powerOffsetIncrements;
             }
@@ -343,12 +330,14 @@ public class Teleop extends LinearOpMode {
                 Shooter.powerOffset += powerOffsetIncrements;
             }
 
-            // Subsystem updates
             intake.update();
             shooter.update();
             spindexer.update();
 
-            // Telemetry (add loop time & state info at the end for accuracy)
+            long currentTime = System.nanoTime();
+            double loopTime = (double) (currentTime - lastLoopTime) / 1_000_000.0;
+            lastLoopTime = currentTime;
+
             telemetry.addData("Loop time", loopTime);
             telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
             telemetry.addData("State machine state", stateMachine.getState());

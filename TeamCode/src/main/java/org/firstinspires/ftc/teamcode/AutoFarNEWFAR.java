@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -74,6 +75,7 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs)
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -87,6 +89,7 @@ public class AutoFarNEWFAR extends LinearOpMode {
         shooter.kickerDown();
         shooter.setHood(0.845);
         spindexer.shootPos(0);
+        shooter.setTargetVelocity(0);
 
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
@@ -95,12 +98,11 @@ public class AutoFarNEWFAR extends LinearOpMode {
             if (currpattern != 0){
                 pattern = currpattern;
             }else{
-                panelsTelemetry.addLine("Don't see anything");
+                telemetry.addLine("Don't see anything");
             }
-            panelsTelemetry.debug("Pattern", pattern);
-            panelsTelemetry.debug("Init Pose: " + follower.getPose());
-            panelsTelemetry.debug("ALLIANCE: " + colorAlliance);
-            panelsTelemetry.update(telemetry);
+            telemetry.addData("Pattern", pattern);
+            telemetry.addData("Init Pose: ", follower.getPose());
+            telemetry.addData("ALLIANCE: ", colorAlliance);
             if (gamepad1.a){
                 colorAlliance="BLUE";
                 shooterTarget = Shooter.Goal.BLUE;
@@ -111,15 +113,15 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 shooterTarget = Shooter.Goal.RED;
                 Posmultiplier=-1;
             }
+            shooter.update();
+            telemetry.update();
         }
 
-        telemetry.update();
         waitForStart(); //unnecessary technically because you are doing while opmode in init right before
 
 
         Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose shootPose = new Pose(60, -20*Posmultiplier, Math.toRadians(-99*Posmultiplier));
-        Pose shootPoseangcycles = new Pose(60, -20*Posmultiplier, Math.toRadians(-98.5*Posmultiplier));
         Pose shootPoseangstart = new Pose(60, -20*Posmultiplier, Math.toRadians(-96*Posmultiplier));
         Pose intake1Pose = new Pose(40, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2Pose = new Pose(64, -40*Posmultiplier, Math.toRadians(-90*Posmultiplier));
@@ -128,7 +130,6 @@ public class AutoFarNEWFAR extends LinearOpMode {
         Pose intake2donePose = new Pose(63, -59*Posmultiplier, Math.toRadians(-95*Posmultiplier));
         Pose intake3donePose = new Pose(55, -61*Posmultiplier, Math.toRadians(-107*Posmultiplier));
         Pose leave = new Pose(50, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-
 
         PathChain toShoot = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
@@ -159,10 +160,6 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 .addPath(new BezierLine(intake2Pose, intake2donePose))
                 .setLinearHeadingInterpolation(intake2Pose.getHeading(), intake2donePose.getHeading())
                 .build();
-        PathChain toIntake1back= follower.pathBuilder()
-                .addPath(new BezierLine(intake1donePose, intake1Pose))
-                .setLinearHeadingInterpolation(intake1donePose.getHeading(), intake1Pose.getHeading())
-                .build();
 
         PathChain toIntake2back= follower.pathBuilder()
                 .addPath(new BezierLine(intake2donePose, intake2Pose))
@@ -176,21 +173,6 @@ public class AutoFarNEWFAR extends LinearOpMode {
         PathChain toIntake3fin = follower.pathBuilder()
                 .addPath(new BezierLine(intake3Pose, intake3donePose))
                 .setLinearHeadingInterpolation(intake3Pose.getHeading(), intake3donePose.getHeading())
-                .build();
-
-        PathChain toScore1 = follower.pathBuilder()
-                .addPath(new BezierLine(intake1donePose, shootPose))
-                .setLinearHeadingInterpolation(intake1donePose.getHeading(), shootPose.getHeading())
-                .build();
-
-        PathChain toScore2 = follower.pathBuilder()
-                .addPath(new BezierLine(intake2Pose, shootPose))
-                .setLinearHeadingInterpolation(intake2Pose.getHeading(), shootPose.getHeading())
-                .build();
-
-        PathChain toScore3 = follower.pathBuilder()
-                .addPath(new BezierLine(intake3donePose, shootPose))
-                .setLinearHeadingInterpolation(intake3donePose.getHeading(), shootPose.getHeading())
                 .build();
 
         PathChain park = follower.pathBuilder()
@@ -314,9 +296,6 @@ public class AutoFarNEWFAR extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT1)
                 .onEnter(()->{
                     follower.followPath(toShoot, true);
-                    //shooter.setHood(0.845); //if you change this you need to update it in init too
-                    //shooter.setTargetVelocity(1660);
-                    //shooter.setTurretPos(shooter.convertDegreestoServoPos(69*Posmultiplier));
                     shooter.aimAtTarget(shootPoseangstart, shooterTarget);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -351,8 +330,14 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
+                    Pose currPose = follower.getPose();
                     intake.setPower(1);
-                    follower.followPath(toScore1, true);
+                    follower.followPath(
+                            follower.pathBuilder()
+                                    .addPath(new BezierLine(currPose, shootPose))
+                                    .setLinearHeadingInterpolation(currPose.getHeading(), shootPose.getHeading())
+                                    .build()
+                            , true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(1.3)
@@ -409,8 +394,13 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.MOVETOSHOOT3)
                 .onEnter(()->{
-                    follower.followPath(toScore2, true);
-                    shooter.aimAtTarget(shootPoseangcycles, shooterTarget);
+                    Pose currPose = follower.getPose();
+                    follower.followPath(
+                            follower.pathBuilder()
+                                    .addPath(new BezierLine(currPose, shootPose))
+                                    .setLinearHeadingInterpolation(currPose.getHeading(), shootPose.getHeading())
+                                    .build()
+                            , true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(2)
@@ -466,7 +456,13 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.MOVETOSHOOT4)
                 .onEnter(()->{
-                    follower.followPath(toScore3, true);
+                    Pose currPose = follower.getPose();
+                    follower.followPath(
+                            follower.pathBuilder()
+                                    .addPath(new BezierLine(currPose, shootPose))
+                                    .setLinearHeadingInterpolation(currPose.getHeading(), shootPose.getHeading())
+                                    .build()
+                            , true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(1.5)
@@ -525,7 +521,13 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
                 .state(AutoStates.MOVETOSHOOT5)
                 .onEnter(()->{
-                    follower.followPath(toScore3, true);
+                    Pose currPose = follower.getPose();
+                    follower.followPath(
+                            follower.pathBuilder()
+                                    .addPath(new BezierLine(currPose, shootPose))
+                                    .setLinearHeadingInterpolation(currPose.getHeading(), shootPose.getHeading())
+                                    .build()
+                            , true);
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(1.5)
@@ -556,22 +558,17 @@ public class AutoFarNEWFAR extends LinearOpMode {
 
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
-
             Position.pose = follower.getPose();
-
             stateMachine.update();
             autoMachine.update();
             follower.update();
             intake.update();
             shooter.update();
             spindexer.update();
-            panelsTelemetry.debug("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
-            panelsTelemetry.debug("State: " + stateMachine.getState());
-            panelsTelemetry.debug("State auto: " + autoMachine.getState());
-            panelsTelemetry.debug("Pose: " + follower.getPose());
-            panelsTelemetry.update(telemetry);
-
-
+            telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
+            telemetry.addData("State: ", stateMachine.getState());
+            telemetry.addData("State auto: ", autoMachine.getState());
+            telemetry.addData("Pose: ", follower.getPose());
             telemetry.update();
         }
     }

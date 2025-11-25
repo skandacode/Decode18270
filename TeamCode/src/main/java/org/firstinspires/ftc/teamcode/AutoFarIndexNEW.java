@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -73,6 +74,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs)
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -91,12 +93,11 @@ public class AutoFarIndexNEW extends LinearOpMode {
             if (currpattern != 0){
                 pattern = currpattern;
             }else{
-                panelsTelemetry.addLine("Don't see anything");
+                telemetry.addLine("Don't see anything");
             }
-            panelsTelemetry.debug("Pattern", pattern);
-            panelsTelemetry.debug("Init Pose: " + follower.getPose());
-            panelsTelemetry.debug("ALLIANCE: " + colorAlliance);
-            panelsTelemetry.update(telemetry);
+            telemetry.addData("Pattern", pattern);
+            telemetry.addData("Init Pose: ", follower.getPose());
+            telemetry.addData("ALLIANCE: ", colorAlliance);
             if (gamepad1.a){
                 colorAlliance="BLUE";
                 shooterTarget = Shooter.Goal.BLUE;
@@ -107,9 +108,9 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 shooterTarget = Shooter.Goal.RED;
                 Posmultiplier=-1;
             }
+            telemetry.update();
         }
 
-        telemetry.update();
         shooter.kickerDown();
         waitForStart();
 
@@ -502,22 +503,17 @@ public class AutoFarIndexNEW extends LinearOpMode {
         spindexer.shootPos(0);
         while (opModeIsActive()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
-
             Position.pose = follower.getPose();
-
             stateMachine.update();
             autoMachine.update();
             follower.update();
             intake.update();
             shooter.update();
             spindexer.update();
-            panelsTelemetry.debug("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
-            panelsTelemetry.debug("State: " + stateMachine.getState());
-            panelsTelemetry.debug("State auto: " + autoMachine.getState());
-            panelsTelemetry.debug("Pose: " + follower.getPose());
-            panelsTelemetry.update(telemetry);
-
-
+            telemetry.addData("Artifact colors", Arrays.toString(spindexer.getArtifactPositions()));
+            telemetry.addData("State: ", stateMachine.getState());
+            telemetry.addData("State auto: ", autoMachine.getState());
+            telemetry.addData("Pose: ", follower.getPose());
             telemetry.update();
         }
     }
