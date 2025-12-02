@@ -115,8 +115,7 @@ public class AutoStartFarShootFar extends LinearOpMode {
             telemetry.update();
         }
 
-        waitForStart(); //unnecessary technically because you are doing while opmode in init right before
-
+        waitForStart();
 
         Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose shootPose = new Pose(60, -20*Posmultiplier, Math.toRadians(-99*Posmultiplier));

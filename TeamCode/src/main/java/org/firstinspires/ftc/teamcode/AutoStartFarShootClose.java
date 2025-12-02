@@ -81,7 +81,9 @@ public class AutoStartFarShootClose extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         follower = createFollower(hardwareMap);
+
         shooter.kickerDown();
+        spindexer.shootPos(0);
 
         while (opModeInInit()) {
             for (LynxModule hub : hubs) hub.clearBulkCache();
@@ -108,7 +110,6 @@ public class AutoStartFarShootClose extends LinearOpMode {
             telemetry.update();
         }
 
-        shooter.kickerDown();
         waitForStart();
 
 
