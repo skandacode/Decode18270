@@ -18,7 +18,6 @@ import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Position;
-import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.LimelightMotif;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -29,7 +28,7 @@ import java.util.List;
 
 @Configurable
 @Autonomous(name = "AutoFarIndexNEW", group = "Auto")
-public class AutoFarIndexNEW extends LinearOpMode {
+public class AutoFarIndexNEW15 extends LinearOpMode {
     private Follower follower;
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     public static int[] shootorder = {0, 1, 2};
@@ -42,20 +41,22 @@ public class AutoFarIndexNEW extends LinearOpMode {
     Spindexer spindexer;
     public int pattern = 1;
     public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.53;
+    public static double timeforspin = 0.4;
     public static double timeForIntake = 0.23;
-    public static double waitforkickerdown = 0.1;
+    public static double waitforkickerdown = 0.03;
 
     public static Shooter.Goal shooterTarget = Shooter.Goal.BLUE;
 
     public enum AutoStates {
         MOVETOSHOOT1, wait1, SHOOT1,
-        MOVETOINTAKE1, INTAKE1, BACK, GATE, waitgate,
+        MOVETOINTAKE1, INTAKE1,
         MOVETOSHOOT2, wait2, SHOOT2,
-        MOVETOINTAKE2, INTAKE2, INTAKE2BACK,
+        MOVETOINTAKE2, INTAKE2, INTAKE2BACK, BACK, GATE, waitgate,
         MOVETOSHOOT3, wait3,SHOOT3,
         MOVETOINTAKE3, INTAKE3,
         MOVETOSHOOT4, wait4,SHOOT4,
+        MOVETOINTAKE4, INTAKE4,
+        MOVETOSHOOT5, wait5,SHOOT5,
         LEAVE
     }
     private enum RobotState {
@@ -122,6 +123,9 @@ public class AutoFarIndexNEW extends LinearOpMode {
         Pose intake1Pose = new Pose(-12, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2Pose = new Pose(16, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3Pose = new Pose(40,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake4Pose = new Pose(30,-58*Posmultiplier, Math.toRadians(0*Posmultiplier));
+        Pose intake4donePose = new Pose(47, -58*Posmultiplier, Math.toRadians(0*Posmultiplier));
+
         Pose intake1donePose = new Pose(-12, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2donePose = new Pose(16, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3donePose = new Pose(40, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
@@ -324,24 +328,14 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .transitionTimed(2)
                 .state(AutoStates.wait1)
                 .onEnter(()->{
-                    if (pattern==1){
-                        shootorder = new int[]{0, 1, 2};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
-                    }else if (pattern==2){
-                        shootorder = new int[]{2, 0, 1};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT3);
-                    }else{
-                        shootorder = new int[]{1, 2, 0};
-                        spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
-
-                    }
+                    spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT1);
                 })
-                .transitionTimed(0.5)
+                .transitionTimed(0.1)
                 .state(AutoStates.SHOOT1)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(2.3)
+                .transitionTimed(2)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
 
                 .state(AutoStates.MOVETOINTAKE1)
@@ -355,7 +349,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .onEnter(()->{
                     follower.followPath(toIntake1fin, 0.5, true);
                 })
-                .transitionTimed(1.7)
+                .transitionTimed(1.5)
                 .state(AutoStates.BACK)
                 .onEnter(()->{
                     follower.followPath(toIntake1back, 0.9, true);
@@ -371,7 +365,7 @@ public class AutoFarIndexNEW extends LinearOpMode {
                 .onEnter(()->{
                     intake.setPower(0);
                 })
-                .transitionTimed(1.4)
+                .transitionTimed(1)
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
                     intake.setPower(1);

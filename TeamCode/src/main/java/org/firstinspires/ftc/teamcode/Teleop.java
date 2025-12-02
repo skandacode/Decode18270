@@ -39,8 +39,8 @@ public class Teleop extends LinearOpMode {
     Spindexer spindexer;
     Follower follower;
 
-    public static double timeforkicker = 0.2;
-    public static double timeforspin = 0.41;
+    public static double timeforkicker = 0.16;
+    public static double timeforspin = 0.2;
     public static double timeForIntake = 0.23;
     private enum RobotState {
         Intake1, wait1,

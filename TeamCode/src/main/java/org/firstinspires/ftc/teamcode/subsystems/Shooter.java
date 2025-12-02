@@ -58,8 +58,8 @@ public class Shooter implements Subsystem {
 
 
     // --- Kicker positions ---
-    public static double KICKER_UP = 0.32;
-    public static double KICKER_DOWN = 0.478;
+    public static double KICKER_UP = 0.35;
+    public static double KICKER_DOWN = 0.5;
 
     // --- Low-pass filter coefficient (for smoothing) ---
     public static double ALPHA = 0.3;
