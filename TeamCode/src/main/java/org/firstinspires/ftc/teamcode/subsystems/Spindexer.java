@@ -189,7 +189,7 @@ public class Spindexer implements Subsystem {
     }
 
     private double getEncoderDegrees() {
-        return AngleUnit.normalizeDegrees((spindexerEncoder.getVoltage()) / 3.227 * 360 + ABS_OFFSET);
+        return AngleUnit.normalizeDegrees((getEncoderVoltage()) / 3.227 * 360 + ABS_OFFSET);
     }
 
     private double getEncoderVoltage() {
