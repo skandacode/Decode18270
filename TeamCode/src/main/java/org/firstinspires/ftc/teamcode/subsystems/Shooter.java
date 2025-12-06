@@ -39,12 +39,12 @@ public class Shooter implements Subsystem {
     private double currentVelocity = 0.0;
 
     // --- Flywheel PIDF coefficients ---
-    public static double kP = 0.0009;
-    public static double kI = 0.0001;
+    public static double kP = 0.0019;
+    public static double kI = 0.0003;
     public static double kD = 0.0002;
 
-    public static double kS = 0.08; // Static feedforward
-    public static double kV = 1.0/2900; // Velocity feedforward
+    public static double kS = 0.045; // Static feedforward
+    public static double kV = 0.0004; // Velocity feedforward
 
     public static boolean enablePIDF = true;
 

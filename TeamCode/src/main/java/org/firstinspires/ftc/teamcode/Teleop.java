@@ -39,8 +39,8 @@ public class Teleop extends LinearOpMode {
     Spindexer spindexer;
     Follower follower;
 
-    public static double timeforkicker = 0.16;
-    public static double timeforspin = 0.2;
+    public static double timeforkicker = 0.18;
+    public static double timeforspin = 0.35;
     public static double timeForIntake = 0.23;
     private enum RobotState {
         Intake1, wait1,
@@ -294,7 +294,7 @@ public class Teleop extends LinearOpMode {
                 turn *= 0.3;
             }
 
-            follower.setTeleOpDrive(forward, -1*strafe, -0.8*turn, true);
+            follower.setTeleOpDrive(forward, -1*strafe, -1*turn, true);
 
 
             if (gamepadEx.getButton(intakeStopButton)) {
