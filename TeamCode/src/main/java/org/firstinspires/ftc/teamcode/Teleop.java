@@ -40,7 +40,9 @@ public class Teleop extends LinearOpMode {
     Follower follower;
 
     public static double timeforkicker = 0.18;
-    public static double timeforspin = 0.35;
+    public static double timeforspin = 0.2;
+    public static double timeforkickerlast = 0.24;
+    public static double timeforspinlast = 0.35;
     public static double timeForIntake = 0.23;
     private enum RobotState {
         Intake1, wait1,
@@ -228,11 +230,11 @@ public class Teleop extends LinearOpMode {
                         currShoot = Artifact.NONE;
                     }
                 })
-                .transitionTimed(timeforspin)
+                .transitionTimed(timeforspinlast)
 
                 .state(RobotState.Shoot3)
                 .onEnter(() -> shooter.kickerUp())
-                .transitionTimed(timeforkicker, RobotState.Intake1)
+                .transitionTimed(timeforkickerlast, RobotState.Intake1)
                 .onExit(() -> {
                     shooter.kickerDown();
                     spindexer.afterShoot();
