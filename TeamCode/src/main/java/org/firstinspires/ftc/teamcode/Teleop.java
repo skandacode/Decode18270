@@ -12,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.robot.Robot;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
@@ -39,8 +40,8 @@ public class Teleop extends LinearOpMode {
     Spindexer spindexer;
     Follower follower;
 
-    public static double timeforkicker = 0.18;
-    public static double timeforspin = 0.2;
+    public static double timeforkicker = 0.2;
+    public static double timeforspin = 0.23;
     public static double timeforkickerlast = 0.24;
     public static double timeforspinlast = 0.35;
     public static double timeForIntake = 0.23;
@@ -147,6 +148,7 @@ public class Teleop extends LinearOpMode {
 
                 .state(RobotState.wait3)
                 .onEnter(() -> {
+                    gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
                     spindexer.afterIntake(intake.getArtifact());
                     spindexer.shootPos(0);
                 })
@@ -154,6 +156,9 @@ public class Teleop extends LinearOpMode {
                 .transitionTimed(0.3)
 
                 .state(RobotState.WaitForShoot)
+                .onEnter(() -> {
+                    gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
+                })
                 .transition(() -> gamepadEx.getButton(shooterButtonAll), () -> autofire = true)
                 .transition(() -> gamepadEx.getButton(shooterButtonGreen) && spindexer.getIndex(Artifact.GREEN) != -1, () -> {
                     autofire = false;
@@ -166,6 +171,7 @@ public class Teleop extends LinearOpMode {
 
                 .state(RobotState.PreShoot1)
                 .onEnter(() -> {
+                    gamepad1.stopRumble();
                     if (autofire) {
                         spindexer.shootPos(shootorder[0]);
                     } else {

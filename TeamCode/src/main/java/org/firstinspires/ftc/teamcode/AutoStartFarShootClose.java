@@ -320,8 +320,8 @@ public class AutoStartFarShootClose extends LinearOpMode {
                 .onEnter(()->{
                     follower.followPath(toShoot, true);
                     shooter.setHood(0.72);
-                    shooter.setTargetVelocity(1180);
-                    shooter.setTurretPos(shooter.convertDegreestoServoPos(47*Posmultiplier));
+                    shooter.setTargetVelocity(1060);
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-133*Posmultiplier));
                 })
                 .transition(()->follower.atParametricEnd())
                 .transitionTimed(2)
