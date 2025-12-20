@@ -22,7 +22,7 @@ public class Spindexer implements Subsystem {
     private double encoderPos = 0;
     private double error;
 
-    public static double ABS_OFFSET = 42;
+    public static double ABS_OFFSET = 33;
     public static double errorTolerance = 10;
 
     public static double kP = -0.009;
@@ -40,11 +40,11 @@ public class Spindexer implements Subsystem {
 
     public enum SpindexerPositions {
         INTAKE1(30),
-        INTAKE2(145),
-        INTAKE3(-90),
-        SHOOT1(-150),
-        SHOOT2(-25),
-        SHOOT3(93);
+        INTAKE2(143),
+        INTAKE3(-93),
+        SHOOT1(-157),
+        SHOOT2(-31),
+        SHOOT3(81);
 
         public final double pos;
 

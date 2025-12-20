@@ -44,7 +44,7 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
     public static double timeforspin = 0.3;
     public static double timeforkickerlast = 0.26;
     public static double timeforspinlast = 0.3;
-    public static double timeForIntake = 0.23;
+    public static double timeForIntake = 0.15;
     public static double waitforkickerdown = 0.03;
 
     public static Shooter.Goal shooterTarget = Shooter.Goal.BLUE;
@@ -118,20 +118,20 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
         waitForStart();
 
 
-        Pose opengate = new Pose(0, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose opengateback = new Pose(0, -50*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengate = new Pose(2, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengateback = new Pose(2, -50*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose startPose = new Pose(65, -24*Posmultiplier, Math.toRadians(0*Posmultiplier));
         Pose shootPose = new Pose(-24, -24*Posmultiplier, Math.toRadians(0*Posmultiplier));
         Pose shootPoselast = new Pose(60, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose shootPoselastshot = new Pose(67, -25.67*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose shootPoselastshot = new Pose(67, -30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
 
-        Pose intake1Pose = new Pose(-12, -22*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake1Pose = new Pose(-10, -22*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2Pose = new Pose(14, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3Pose = new Pose(37,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake4Pose = new Pose(62,-25*Posmultiplier, Math.toRadians(-70*Posmultiplier));
+        Pose intake4Pose = new Pose(62,-25*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake4donePose = new Pose(66, -61*Posmultiplier, Math.toRadians(-90*Posmultiplier));
 
-        Pose intake1donePose = new Pose(-12, -53*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake1donePose = new Pose(-10, -53*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2donePose = new Pose(14, -60*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3donePose = new Pose(40, -60*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose leave = new Pose(60, -46*Posmultiplier, Math.toRadians(-90*Posmultiplier));
@@ -237,8 +237,9 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
 
                 .state(RobotState.wait1)
                 .onEnter(() -> {
-                    spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(1);
+                    spindexer.update();
+                    spindexer.afterIntake(intake.getArtifact());
                 })
                 .transitionTimed(timeForIntake)
                 .transition(() -> shooterButtonAll)
@@ -252,8 +253,9 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
 
                 .state(RobotState.wait2)
                 .onEnter(() -> {
-                    spindexer.afterIntake(intake.getArtifact());
                     spindexer.intakePos(2);
+                    spindexer.update();
+                    spindexer.afterIntake(intake.getArtifact());
                 })
                 .transitionTimed(timeForIntake)
                 .transition(() -> shooterButtonAll)
@@ -267,8 +269,9 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
 
                 .state(RobotState.wait3)
                 .onEnter(() -> {
-                    spindexer.afterIntake(intake.getArtifact());
                     spindexer.shootPos(0);
+                    spindexer.update();
+                    spindexer.afterIntake(intake.getArtifact());
                 })
                 .transition(() -> spindexer.atTarget())
                 .transition(() -> shooterButtonAll)
@@ -423,7 +426,7 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
                     follower.followPath(toIntake2fin, 0.9, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(2.2)
+                .transitionTimed(1.8)
 
                 .state(AutoStates.INTAKE2BACK)
                 .onEnter(()->{
@@ -483,7 +486,7 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
                     follower.followPath(toIntake3fin, 0.7, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(2.7)
+                .transitionTimed(2.55)
                 .state(AutoStates.MOVETOSHOOT4)
                 .onEnter(()->{
                     follower.followPath(toScore3, true);
@@ -503,14 +506,15 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
                         spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
 
                     }
-                    shooter.aimAtTarget(follower.getPose(), shooterTarget);
-                })
+                    shooter.setHood(0.84);
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-108 * Posmultiplier));
+                    shooter.setTargetVelocity(1490);                })
                 .transitionTimed(0.3)
                 .state(AutoStates.SHOOT4)
                 .onEnter(()->{
                     shooterButtonAll=true;
                 })
-                .transitionTimed(1.7)
+                .transitionTimed(1.55)
                 .transition(()->stateMachine.getStateEnum() == RobotState.spin3)
                 .state(AutoStates.MOVETOINTAKE4)
                 .onEnter(()->{
@@ -523,7 +527,7 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
                     follower.followPath(toIntake4fin, 0.8, true);
                 })
                 .transition(()->follower.atParametricEnd())
-                .transitionTimed(1.67)
+                .transitionTimed(1.7)
                 .state(AutoStates.INTAKE4BACK)
                 .onEnter(()->{
                     follower.followPath(toIntake4back, 1, true);
@@ -560,7 +564,9 @@ public class AutoFarIndexNEW15 extends LinearOpMode {
                         spindexer.setPosition(Spindexer.SpindexerPositions.SHOOT2);
 
                     }
-                    shooter.aimAtTarget(follower.getPose(), shooterTarget);
+                    shooter.setHood(0.84);
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-108 * Posmultiplier));
+                    shooter.setTargetVelocity(1490);
                 })
                 .transitionTimed(0.3)
                 .state(AutoStates.SHOOT5)
