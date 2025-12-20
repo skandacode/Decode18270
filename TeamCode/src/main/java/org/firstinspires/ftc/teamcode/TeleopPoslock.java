@@ -185,6 +185,7 @@ public class TeleopPoslock extends LinearOpMode {
                 .onEnter(() -> {
                     posLock=true;
                     shootPose = follower.getPose();
+                    follower.holdPoint(shootPose);
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker)
@@ -246,6 +247,7 @@ public class TeleopPoslock extends LinearOpMode {
                 .transitionTimed(timeforkickerlast, RobotState.Intake1)
                 .onExit(() -> {
                     posLock=false;
+                    follower.startTeleopDrive();
                     shooter.kickerDown();
                     spindexer.afterShoot();
                     spindexer.intakePos(0);
@@ -306,24 +308,7 @@ public class TeleopPoslock extends LinearOpMode {
                 turn *= 0.3;
             }
 
-            if (!posLock){
-                if (prevPoslock){
-                    follower.startTeleopDrive();
-                }
-                follower.setTeleOpDrive(forward, -1*strafe, -1*turn, true);
-            }
-            else{
-                Pose currPose = follower.getPose();
-                follower.followPath(
-                        follower.pathBuilder()
-                                .addPath(new BezierLine(currPose, shootPose))
-                                .setBrakingStrength(10)
-                                .setLinearHeadingInterpolation(currPose.getHeading(), shootPose.getHeading())
-                                .setNoDeceleration()
-                                .build()
-                        , true);
-            }
-            prevPoslock=posLock;
+            follower.setTeleOpDrive(forward, -1*strafe, -1*turn, true);
 
             if (gamepadEx.getButton(intakeStopButton)) {
                 intake.setPower(0);
