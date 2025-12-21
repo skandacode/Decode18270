@@ -185,7 +185,7 @@ public class TeleopPoslock extends LinearOpMode {
                 .onEnter(() -> {
                     posLock=true;
                     shootPose = follower.getPose();
-                    follower.holdPoint(shootPose);
+                    follower.holdPoint(new BezierPoint(shootPose), shootPose.getHeading(), false);
                     shooter.kickerUp();
                 })
                 .transitionTimed(timeforkicker)
