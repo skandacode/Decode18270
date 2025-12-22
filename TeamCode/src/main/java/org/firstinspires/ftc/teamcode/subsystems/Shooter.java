@@ -78,6 +78,9 @@ public class Shooter implements Subsystem {
     public static double powerOffset = 0;
     public static double turretOffset = 0;
 
+    Pose pastPosition = null;
+    long lastTimeShoot = 0;
+
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
         shooterMotor2 = new Motor(hardwareMap, "outtakemotor2");
@@ -126,7 +129,24 @@ public class Shooter implements Subsystem {
     }
 
     public void aimAtTarget(Pose currPosition, Goal target){
-        double[] angleDistance = getAngleDistance(currPosition, target);
+        long currTime = System.nanoTime();
+        Pose actualShootPosition = currPosition;
+
+        if (pastPosition != null){
+            double distance = Math.hypot(
+                target.position.getX() - currPosition.getX(),
+                target.position.getY() - currPosition.getY()
+            );
+            double secPerLoop = (currTime - lastTimeShoot) / 1e9;
+            actualShootPosition = new Pose(
+                currPosition.getX() + (currPosition.getX() - pastPosition.getX())* ShooterTables.getAirTime(distance)/secPerLoop,
+                currPosition.getY() + (currPosition.getY() - pastPosition.getY())* ShooterTables.getAirTime(distance)/secPerLoop,
+                currPosition.getHeading() + (currPosition.getHeading() - pastPosition.getHeading())* ShooterTables.getAirTime(distance)/secPerLoop
+            );
+        }
+
+
+        double[] angleDistance = getAngleDistance(actualShootPosition, target);
         double angle = angleDistance[0];
         double distance = angleDistance[1];
 
@@ -137,6 +157,9 @@ public class Shooter implements Subsystem {
         setTurretPos(servoPos);
         setTargetVelocity(ShooterTables.getShooterVelocity(distance) + powerOffset);
         setHood(ShooterTables.getHoodPosition(distance));
+
+        pastPosition = currPosition;
+        lastTimeShoot = currTime;
     }
 
     public void setTargetVelocity(double target) {
