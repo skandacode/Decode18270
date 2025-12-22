@@ -66,8 +66,8 @@ public class Shooter implements Subsystem {
     private double smoothedVelocity = 0.0;
 
     public enum Goal{
-        RED (new Pose(-72, 72)),
-        BLUE (new Pose(-72, -72));
+        RED (new Pose(-60, 60)),
+        BLUE (new Pose(-60, -60));
 
         Pose position;
         Goal(Pose pose) {

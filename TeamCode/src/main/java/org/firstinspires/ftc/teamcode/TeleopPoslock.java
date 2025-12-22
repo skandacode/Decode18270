@@ -328,6 +328,9 @@ public class TeleopPoslock extends LinearOpMode {
 
             if (gamepadEx.wasJustPressed(positionResetButton)){
                 follower.setPose(new Pose(65, 0, Math.toRadians(180)));
+                Shooter.powerOffset = 0;
+                Shooter.turretOffset = 0;
+
             }
 
             if (gamepadEx.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
