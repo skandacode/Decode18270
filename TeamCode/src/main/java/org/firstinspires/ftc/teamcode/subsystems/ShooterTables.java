@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 
+@Configurable
 public class ShooterTables {
+    public static double time = 1;
+
     public static double getHoodPosition(double distance){
         return (1.71189e-12) * Math.pow(distance, 4)
                 + (2.18435e-7)  * Math.pow(distance, 3)
@@ -19,6 +23,6 @@ public class ShooterTables {
     }
 
     public static double getAirTime(double distance){
-        return 1;
+        return time;
     }
 }
