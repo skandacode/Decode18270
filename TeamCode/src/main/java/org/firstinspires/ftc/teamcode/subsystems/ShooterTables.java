@@ -7,21 +7,15 @@ public class ShooterTables {
     public static double time = 1;
 
     public static double getHoodPosition(double distance){
-        return (1.71189e-12) * Math.pow(distance, 4)
-                + (2.18435e-7)  * Math.pow(distance, 3)
-                - 0.000096597   * Math.pow(distance, 2)
-                + 0.0146982     * distance
-                + 0.0972414;
+        return 0.813747 / (1 + Math.exp(-(0.0564885 * distance - 1.11718)));
     }
 
-    public static double getShooterVelocity(double distance){
-        return -0.0000132801 * Math.pow(distance, 4)
-                + 0.00581041   * Math.pow(distance, 3)
-                - 0.919645     * Math.pow(distance, 2)
-                + 66.7719      * distance
-                - 690.84713;
+    public static double getShooterVelocity(double distance) {
+        return 0.000240449  * Math.pow(distance, 3)
+                -0.0632857     * Math.pow(distance, 2)
+                +9.65368      * distance
+                +734.47049;
     }
-
     public static double getAirTime(double distance){
         return time;
     }

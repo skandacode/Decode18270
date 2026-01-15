@@ -47,13 +47,13 @@ public class Shooter implements Subsystem {
     public static double kV = 0.0004; // Velocity feedforward
 
     public static boolean enablePIDF = true;
-
+    public static boolean shootingwhilemoving= false;
     // --- Turret bounds ---
     public static double turretUpperBound = 1;
     public static double turretLowerBound = 0;
 
     // -- Hood bounds
-    public static double hoodUpperBound = 0.86;
+    public static double hoodUpperBound = 0.84;
     public static double hoodLowerBound = 0.6;
 
 
@@ -66,8 +66,8 @@ public class Shooter implements Subsystem {
     private double smoothedVelocity = 0.0;
 
     public enum Goal{
-        RED (new Pose(-60, 60)),
-        BLUE (new Pose(-60, -60));
+        RED (new Pose(-57, 67)),
+        BLUE (new Pose(-57, -67));
 
         Pose position;
         Goal(Pose pose) {
@@ -80,6 +80,11 @@ public class Shooter implements Subsystem {
 
     Pose pastPosition = null;
     long lastTimeShoot = 0;
+
+    public double smoothedX = 0;
+    public double smoothedY = 0;
+    public double smoothedHeading = 0;
+    public static double positionLowPassk = 0.9;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = new Motor(hardwareMap, "outtakemotor1");
@@ -131,17 +136,30 @@ public class Shooter implements Subsystem {
     public void aimAtTarget(Pose currPosition, Goal target){
         long currTime = System.nanoTime();
         Pose actualShootPosition = currPosition;
-
+        if (shootingwhilemoving) {
         if (pastPosition != null){
-            double distance = Math.hypot(
-                target.position.getX() - currPosition.getX(),
-                target.position.getY() - currPosition.getY()
-            );
-            double secPerLoop = (currTime - lastTimeShoot) / 1e9;
+
+                double distance = Math.hypot(
+                        target.position.getX() - currPosition.getX(),
+                        target.position.getY() - currPosition.getY()
+                );
+                double secPerLoop = (currTime - lastTimeShoot) / 1e9;
+                smoothedX = positionLowPassk * smoothedX + (1 - positionLowPassk) * (currPosition.getX() - pastPosition.getX()) / secPerLoop;
+                smoothedY = positionLowPassk * smoothedY + (1 - positionLowPassk) * (currPosition.getY() - pastPosition.getY()) / secPerLoop;
+                smoothedHeading = positionLowPassk * smoothedHeading + (1 - positionLowPassk) * (currPosition.getHeading() - pastPosition.getHeading()) / secPerLoop;
+
+                actualShootPosition = new Pose(
+                        currPosition.getX() + smoothedX * ShooterTables.getAirTime(distance),
+                        currPosition.getY() + smoothedY * ShooterTables.getAirTime(distance),
+                        currPosition.getHeading() + smoothedHeading * ShooterTables.getAirTime(distance)
+                );
+            }
+        }
+        else{
             actualShootPosition = new Pose(
-                currPosition.getX() + (currPosition.getX() - pastPosition.getX())* ShooterTables.getAirTime(distance)/secPerLoop,
-                currPosition.getY() + (currPosition.getY() - pastPosition.getY())* ShooterTables.getAirTime(distance)/secPerLoop,
-                currPosition.getHeading() + (currPosition.getHeading() - pastPosition.getHeading())* ShooterTables.getAirTime(distance)/secPerLoop
+                    currPosition.getX(),
+                    currPosition.getY(),
+                    currPosition.getHeading()
             );
         }
 
