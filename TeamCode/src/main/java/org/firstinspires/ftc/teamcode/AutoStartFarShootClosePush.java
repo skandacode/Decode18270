@@ -114,8 +114,8 @@ public class AutoStartFarShootClosePush extends LinearOpMode {
         waitForStart();
 
 
-        Pose opengate = new Pose(3, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose opengateback = new Pose(3, -30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengate = new Pose(4, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengateback = new Pose(4, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose startPose = new Pose(65, -12*Posmultiplier, Math.toRadians(0*Posmultiplier));
         Pose pushPose = new Pose(64, -24*Posmultiplier, Math.toRadians(0*Posmultiplier));
         Pose shootPose = new Pose(-18, -18*Posmultiplier, Math.toRadians(-90*Posmultiplier));
@@ -392,7 +392,7 @@ public class AutoStartFarShootClosePush extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
                     intake.setPower(1);
-                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-138*Posmultiplier));
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-136*Posmultiplier));
                     follower.followPath(toScore1, true);
                 })
                 .transition(()->follower.atParametricEnd())
@@ -442,7 +442,7 @@ public class AutoStartFarShootClosePush extends LinearOpMode {
                 .state(AutoStates.MOVETOSHOOT3)
                 .onEnter(()->{
                     follower.followPath(toScore2, true);
-                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-133*Posmultiplier));
+                    shooter.setTurretPos(shooter.convertDegreestoServoPos(-132*Posmultiplier));
 
                 })
                 .transition(()->follower.atParametricEnd())

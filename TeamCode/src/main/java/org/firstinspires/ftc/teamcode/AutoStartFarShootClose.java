@@ -113,16 +113,16 @@ public class AutoStartFarShootClose extends LinearOpMode {
         waitForStart();
 
 
-        Pose opengate = new Pose(3, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose opengateback = new Pose(3, -30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengate = new Pose(4, -56*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose opengateback = new Pose(4, -20*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose startPose = new Pose(65, -24*Posmultiplier, Math.toRadians(0*Posmultiplier));
         Pose shootPose = new Pose(-18, -18*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1Pose = new Pose(-10, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2Pose = new Pose(16, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3Pose = new Pose(40,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2Pose = new Pose(10, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3Pose = new Pose(30,-26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake1donePose = new Pose(-10, -55*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake2donePose = new Pose(16, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose intake3donePose = new Pose(40, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake2donePose = new Pose(10, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
+        Pose intake3donePose = new Pose(30, -58*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose leave = new Pose(-5, -30*Posmultiplier, Math.toRadians(-85*Posmultiplier));
 
 
@@ -374,7 +374,7 @@ public class AutoStartFarShootClose extends LinearOpMode {
                 .onEnter(()->{
                     intake.setPower(0);
                 })
-                .transitionTimed(1.9)
+                .transitionTimed(2.6)
                 .state(AutoStates.MOVETOSHOOT2)
                 .onEnter(()->{
                     intake.setPower(1);

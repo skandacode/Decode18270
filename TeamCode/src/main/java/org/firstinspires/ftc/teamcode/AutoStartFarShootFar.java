@@ -118,8 +118,8 @@ public class AutoStartFarShootFar extends LinearOpMode {
         waitForStart();
 
         Pose startPose = new Pose(65, -27*Posmultiplier, Math.toRadians(-90*Posmultiplier));
-        Pose shootPose = new Pose(60, -20*Posmultiplier, Math.toRadians(-99*Posmultiplier));
-        Pose shootPoseangstart = new Pose(60, -20*Posmultiplier, Math.toRadians(-96*Posmultiplier));
+        Pose shootPose = new Pose(60, -20*Posmultiplier, Math.toRadians(-96*Posmultiplier));
+        Pose shootPoseangstart = new Pose(60, -20*Posmultiplier, Math.toRadians(-93*Posmultiplier));
         Pose intake1Pose = new Pose(40, -26*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake2Pose = new Pose(64, -40*Posmultiplier, Math.toRadians(-90*Posmultiplier));
         Pose intake3Pose = new Pose(60,-30*Posmultiplier, Math.toRadians(-90*Posmultiplier));
